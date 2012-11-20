@@ -1,0 +1,73 @@
+Customize
+
+
+A. Change appearance of imported post
+
+	The layout of imported post can be customized by altering language file
+	language/{lang}/find_posting.php.
+
+	If you create custom BBCode for Horizontal line (HR) and Tab (TAB), update related entries with
+	your BBCode will do.
+
+	Note: If you mess up with language file, your phpBB will cease functioning!
+
+
+B. Add topic icon
+
+	To enable topic icon, edit includes/constants.php
+
+		FIND
+			//define('FIND_ICON', 6);   // this is the find post icon_id
+
+		REPLACED WITH
+			define('FIND_ICON', 6);   // this is the find post icon_id
+
+	Note: Change '6' with the icon ID of your choice.
+
+
+C. Add content filter
+
+	Edit includes/constants.php
+
+		FIND
+			define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
+		ADD AFTER
+			define('FIND_STRIP', 'Read More');   // comma delimited string to strip from item contents
+
+	Note: Original written for the removal of duplicate "Read More" link from source. You may use
+	the content filter to remove any text from source.
+
+
+D. Change "Read More" text link to link (Source: [url]http://the_source/link[/url]) only.
+
+
+	Edit language/en/find_posting.php
+
+		FIND
+			'BB_READ_MORE'   => "\n" . '[url=%s][i]Read more...[/i][/url]' . "\n\n",
+
+		REPLACED WITH
+			'BB_READ_MORE'   => "\n" . 'Source: [url]%s[/url]' . "\n\n",
+
+
+E. Additional Atom feed support
+
+	Edit includes/functions_find.php
+
+		FIND
+			default:
+
+		ADD ABOVE
+			case '{atom feed url}':
+				{
+						:
+					code to convert some tags to rss format
+						:
+				}
+			break;
+
+	Note: Replace {atom feed url} to the url of interested. Study the "BBC Chinese" code block and
+	write your own conversion code.
+
+
+

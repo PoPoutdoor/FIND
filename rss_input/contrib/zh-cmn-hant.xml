@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="../modx.prosilver.en.xsl"?>
+<!--For security purposes, please check: http
+://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.2.5.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+
+		<title lang="en">RSS Input - Traditional Chinese translations and code support</title>
+		<title lang="zh-TW">RSS 匯集 － 繁體中文翻譯及支援程式</title>
+
+		<description lang="en">This mod for RSS Input v1.0.1</description>
+		<description lang="zh-TW">譯文支援 RSS 匯集 1.0.1 版本</description>
+
+		<author-notes lang="en">You must have RSS Input v1.0.1 installed and working before installing this mod. If your browser does not support Traditional Chinese, mod instructions with Chinese characters can't be read.</author-notes>
+		<author-notes lang="zh-TW">你必須先安裝好 RSS 匯集 1.0.1 版本才能夠使用這繁體中文支援。</author-notes>
+		<author-group>
+			<author>
+				<realname>Plato Leung</realname>
+				<username>PoPoutdoor</username>
+			</author>
+		</author-group>
+
+		<mod-version>1.0.1</mod-version>
+
+		<installation>
+			<level>easy</level>
+			<time>120</time>
+			<target-version>3.0.8</target-version>
+		</installation>
+
+		<history>
+			<entry>
+				<date>2010-11-28</date>
+				<rev-version>1.0.0</rev-version>
+				<changelog lang="en">
+					<change>Update Mod instructions</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新到版本 1.0.0 安裝檔</change>
+				</changelog>
+			</entry>
+		</history>
+
+		<link-group>
+			<link type="parent" href="../install.xml" lang="en">Install RSS input</link>
+			<link type="parent" href="../install.xml" lang="zh-TW">安裝 RSS 匯集外掛</link>
+		</link-group>
+	</header>
+
+	<action-group>
+		<copy>
+			<file from="root/language/zh_cmn_hant/find.php" to="language/zh_cmn_hant/find.php" />
+			<file from="root/language/zh_cmn_hant/find_posting.php" to="language/zh_cmn_hant/find_posting.php" />
+			<file from="root/language/zh_cmn_hant/acp/find.php" to="language/zh_cmn_hant/acp/find.php" />
+		</copy>
+
+		<open src="includes/constants.php">
+			<edit>
+				<comment lang="en">CJK support is detected by the posting bot language.</comment>
+				<comment lang="zh-TW">中日韓支援是取決於發佈機器人語言設定的</comment>
+				<find><![CDATA[define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
+]]></find>
+				<action type="after-add"><![CDATA[define('FIND_CJK', 'zh_cmn_hant');	// the CJK flag, comma delimited string]]></action>
+			</edit>
+		</open>
+
+		<open src="language/zh_cmn_hant/acp/common.php">
+			<edit>
+				<find><![CDATA[	'ACP_FORUM_BASED_PERMISSIONS'	=> '版面基本權限',]]></find>
+				<action type="before-add"><![CDATA[	'ACP_FIND'					=> '新聞匯集設定',
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'LOG_FORK'					=> '<strong>已複製主題</strong><br /> 從 %s',]]></find>
+				<action type="before-add"><![CDATA[
+	'LOG_FEED_ADDED'	=> '<strong>新增新聞匯集來源：</strong><br />» %s',
+	'LOG_FEED_DELETED'	=> '<strong>刪除新聞匯集來源：</strong><br />» %s',
+	'LOG_FEED_UPDATED'	=> '<strong>更新新聞匯集來源：</strong><br />» %s',
+]]></action>
+			</edit>
+		</open>
+
+		<open src="includes/functions_find.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add"><![CDATA[
+
+
+/**
+* Fix CJK full-width punct-alpnum spacing
+*
+* utf8 ncr values for CJK full-width symbols:
+*	12288 - 12290, 12298 - 12318
+*	65281 - 65312
+*	65313 - 65338		excludes english capital letters
+*	65339 - 65344
+*	65345 - 65370		excludes english letters
+*	65371 - 65377
+*	65504 - 65510
+*
+*	HK font				37032, 24419, 22487
+*/
+function cjk_tidy($text)
+{
+	// decode first!
+	$text = utf8_decode_ncr($text);
+
+	// Preserve space around [] , for posting with bbcode tags
+	$text = preg_replace('#\] +([[:punct:]])#', ']&#32;\\1', $text);
+	$text = preg_replace('#([[:punct:]]) +\[#', '\\1&#32;[', $text);
+	// encolsed words with spaces
+	$text = preg_replace('#([[:alnum:][:punct:]\-\+]+)#', '&#32;\\1&#32;', $text);
+
+	$text = utf8_encode_ncr($text);
+
+	$text = preg_replace('/(?:(&#[0-9]{5};)(\w+)|(\w+)(&#[0-9]{5};))/', '\\1 \\2', $text);
+	$text = preg_replace('/\]&#32;(&#[0-9]{5};)/', ']\\1', $text);
+	$text = preg_replace('/(&#[0-9]{5};)&#32;\[/', '\\1[', $text);
+	// trim full-width spaces
+	$text = preg_replace('/^\p{Zs}+/u', '', $text);
+	$text = preg_replace('/\p{Zs}+$/u', '', $text);
+
+	// restore space
+	$text = str_replace('&#32;', ' ', $text);
+
+	// process spacings
+	$val = 12287;
+	while ($val <= 12318)
+	{
+		$val++;
+		if ($val > 12290 && $val < 12298)
+		{
+			continue;
+		}
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$val = 65280;
+	while ($val <= 65378)
+	{
+		$val++;
+		if ( ($val > 65312 && $val < 65339) || ($val > 65344 && $val < 65371) )
+		{
+			// skip Full-width letters and part not in range
+			continue;
+		}
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$val = 65503;
+	while ($val <= 65510)
+	{
+		$val++;
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$text = utf8_decode_ncr($text);
+
+	return $text;
+}
+
+
+
+]]></action>
+			</edit>
+		</open>
+
+		<diy-instructions lang="en">Purge phpbb cache from ACP, after installing all files and mods.</diy-instructions>
+		<diy-instructions lang="zh-TW">完成檔案複制和改動以後，登入管理員控制台 (ACP) -> 一般 － 清除快取。</diy-instructions>
+	</action-group>
+</mod>

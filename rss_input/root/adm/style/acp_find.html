@@ -1,0 +1,160 @@
+<!-- IF S_KEYWORD_VERSION -->
+<!--
+/**
+*
+* @author PoPoutdoor
+*
+* @package RSS_input
+* @version $Id:$
+* @copyright (c) 2008-2011 PoPoutdoor
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+//-->
+<!-- ENDIF -->
+<!-- INCLUDE overall_header.html -->
+
+<a name="maincontent"></a>
+
+<!-- IF S_EDIT_FEED -->
+
+	<a href="{U_BACK}" style="float: {S_CONTENT_FLOW_END};">&laquo; {L_BACK}</a>
+
+	<h1>{L_TITLE}</h1>
+	<p>{L_EDIT_FEED_EXPLAIN}</p>
+
+	<!-- IF S_ERROR -->
+		<div class="errorbox">
+			<h3>{L_WARNING}</h3>
+			<p>{ERROR_MSG}</p>
+		</div>
+	<!-- ENDIF -->
+
+	<form id="acp_find" method="post" action="{U_ACTION}">
+	<fieldset>
+		<legend>{L_TITLE}</legend>
+		<dl>
+			<dt><label for="feedname">{L_FEED_NAME}</label><br /><span>{L_FEED_NAME_EXPLAIN}</span></dt>
+			<dd><input name="feedname" type="text" id="feedname" value="{FEED_NAME}" size="40" maxlength="255" /></dd>
+		</dl>
+		<dl>
+			<dt><label for="url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}</span></dt>
+			<dd><input name="url" type="text" id="url" value="{FEED_URL}" size="40" maxlength="255" /></dd>
+		</dl>
+		<dl>
+			<dt><label for="post_forum">{L_POST_FORUM_BOT}</label><br /><span>{L_POST_FORUM_BOT_EXPLAIN}</span></dt>
+			<dd><select id="post_forum" name="post_forum">{S_FORUM_OPTIONS}</select></dd>
+			<dd><select id="bot_id" name="bot_id">{S_BOT_OPTIONS}</select></dd>
+4		</dl>
+		<dl>
+			<dt><label for="encodings">{L_FEED_RECODE}</label><br /><span>{L_FEED_RECODE_EXPLAIN}</span></dt>
+			<dd><input name="encodings" type="text" id="encodings" value="{FEED_RECODE}" maxlength="32" /></dd>
+		</dl>
+	</fieldset>
+	<fieldset>
+		<legend>{L_TOPIC_MODE}</legend>
+		<dl>
+			<dt><label for="topic_ttl">{L_TOPIC_TTL}</label><br /><span>{L_TOPIC_TTL_EXPLAIN}</span></dt>
+			<dd>{S_TOPIC_TTL}</dd>
+		</dl>
+	</fieldset>
+	<fieldset>
+		<legend>{L_ACP_POST_SETTINGS}</legend>
+		<dl>
+			<dt><label for="feedname_topic">{L_FEEDNAME_TOPIC}</label><br /><span>{L_FEEDNAME_TOPIC_EXPLAIN}</span></dt>
+			<dd>{S_FEEDNAME}</dd>
+		</dl>
+		<dl>
+			<dt><label for="post_items">{L_POST_ITEMS}</label><br /><span>{L_POST_ITEMS_EXPLAIN}</span></dt>
+			<dd><input name="post_items" type="text" id="post_items" value="{POST_ITEMS}" maxlength="255" /></dd>
+		</dl>
+		<dl>
+			<dt><label for="post_contents">{L_POST_LIMITS}</label><br /><span>{L_POST_LIMITS_EXPLAIN}</span></dt>
+			<dd><input name="post_contents" type="text" id="post_contents" value="{POST_LIMITS}" maxlength="255" /></dd>
+		</dl>
+		<dl>
+			<dt><label for="inc_channel">{L_FEED_CHANNEL}</label><br /><span>{L_FEED_CHANNEL_EXPLAIN}</span></dt>
+			<dd>{S_CHANNEL}</dd>
+		</dl>
+		<dl>
+			<dt><label for="inc_cat">{L_FEED_CAT}</label><br /><span>{L_FEED_CAT_EXPLAIN}</span></dt>
+			<dd>{S_CAT}</dd>
+		</dl>
+		<dl>
+			<dt><label for="feed_html">{L_FEED_HTML}</label><br /><span>{L_FEED_HTML_EXPLAIN}</span></dt>
+			<dd>{S_HTML}</dd>
+		</dl>
+	</fieldset>
+	<fieldset>
+		<legend>{L_ACP_SUBMIT_CHANGES}</legend>
+<!-- IF S_AUTH -->
+	<!-- BEGIN auth_tpl -->
+		{auth_tpl.TPL}
+	<!-- END auth_tpl -->
+<!-- ENDIF -->
+		<p class="submit-buttons">
+			<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+			<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+		</p>
+		{S_FORM_TOKEN}
+	</fieldset>
+	</form>
+<!-- ELSE -->
+
+	<h1>{L_FIND}</h1>
+	<p>{L_FIND_EXPLAIN}</p>
+
+	<form id="acp_find" method="post" action="{U_ACTION}">
+	<table cellspacing="1">
+	<thead>
+	<tr>
+		<th>{L_FEED_ID}</th>
+		<th>{L_FEEDNAME}</th>
+		<th>{L_LAST_VISIT}</th>
+		<th colspan="3" style="width: 30%; white-space: nowrap;">{L_OPTIONS}</th>
+		<th>{L_MARK}</th>
+	</tr>
+	</thead>
+	<tbody>
+	<!-- IF S_NO_ITEMS -->
+		<tr>
+			<td class="row3" colspan="7"><strong>{L_NO_ENTRIES}</strong></td>
+		</tr>
+	<!-- ELSE -->
+		<!-- BEGIN feeds -->
+		<!-- IF feeds.S_TREE -->
+		<tr>
+			<td class="row3" colspan="7">&nbsp;{feeds.FORUM}</td>
+		</tr>
+		<!-- ENDIF -->
+		<!-- IF feeds.S_ROW_COUNT is even --><tr class="row1"><!-- ELSE --><tr class="row2"><!-- ENDIF -->
+			<td style="width: 5%; text-align: center;">&nbsp;&#35;{feeds.ID}&nbsp;</td>
+			<td style="width: 40%;"><a href="{feeds.URL}" onclick="window.open(this.href); return false">{feeds.NAME}</a></td>
+			<td style="text-align: center;">&nbsp;{feeds.LAST_IMPORT}&nbsp;</td>
+			<td style="text-align: center;">&nbsp;<a href="{feeds.U_ACTIVATE_DEACTIVATE}">{feeds.L_ACTIVATE_DEACTIVATE}</a>&nbsp;</td>
+			<td style="text-align: center;">&nbsp;<a href="{feeds.U_EDIT}">{L_EDIT}</a>&nbsp;</td>
+			<td style="text-align: center;">&nbsp;<a href="{feeds.U_DELETE}">{L_DELETE}</a>&nbsp;</td>
+			<td style="text-align: center;"><input type="checkbox" class="radio" name="mark[]" value="{feeds.ID}" /></td>
+		</tr>
+		<!-- END feeds -->
+	<!-- ENDIF -->
+	</tbody>
+	</table>
+
+	<fieldset class="quick" style="float: {S_CONTENT_FLOW_BEGIN};">
+		<input class="button2" name="add" type="submit" value="{L_ADD_FEED}" />
+	</fieldset>
+
+	<!-- IF not S_NO_ITEMS -->
+	<fieldset class="quick" style="float: {S_CONTENT_FLOW_END};">
+		<select name="action">{S_FEED_OPTIONS}</select>
+		<input class="button2" name="submit" type="submit" value="{L_SUBMIT}" />
+		<p class="small"><a href="#" onclick="marklist('acp_find', 'mark', true);">{L_MARK_ALL}</a> &bull; <a href="#" onclick="marklist('acp_find', 'mark', false);">{L_UNMARK_ALL}</a></p>
+		{S_FORM_TOKEN}
+	</fieldset>
+	<!-- ENDIF -->
+	</form>
+
+<!-- ENDIF -->
+
+<!-- INCLUDE overall_footer.html -->

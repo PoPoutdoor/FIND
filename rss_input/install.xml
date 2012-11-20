@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="modx.prosilver.en.xsl"?>
+<!--For security purposes, please check: http
+://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.2.5.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+
+		<title lang="en">RSS Input</title>
+		<title lang="zh-TW">RSS 新聞匯集</title>
+
+		<description lang="en">Import RSS news to your forums.</description>
+		<description lang="zh-TW">把 RSS 新聞來源發佈到你的論壇。</description>
+
+		<author-notes lang="en">Code based on 2.0.x mod 'FIND'.
+
+This mod require:
+
+  1. php > 5.0
+  2. php setting "allow_url_fopen = on" or cURL library support.
+  3. php setting "safe_mode = on" is NOT supportted!</author-notes>
+		<author-notes lang="zh-TW">程式碼建基於 2.0.x 'FIND' 外掛。
+
+這個外掛需要：
+
+  1. php 5.0 以上
+  2. php 設定 "allow_url_fopen = on" 或 支援 cURL 程式庫
+  3. 不支援 php 設定 "safe_mode = on"</author-notes>
+
+		<author-group>
+			<author>
+				<realname>Plato Leung</realname>
+				<username>PoPoutdoor</username>
+			</author>
+		</author-group>
+
+		<mod-version>1.0.1</mod-version>
+
+		<installation>
+			<level>easy</level>
+			<time>300</time>
+			<target-version>3.0.8</target-version>
+		</installation>
+
+		<history>
+			<entry>
+				<date>2011-04-06</date>
+				<rev-version>1.0.1(RC-5)</rev-version>
+				<changelog lang="en">
+					<change>Optimize code and minor bug fix</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>優化程式及除蟲</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2011-02-03</date>
+				<rev-version>1.0.0RC4</rev-version>
+				<changelog lang="en">
+					<change>Rewrite code to enhance support of RSS 2.0 and XML specification</change>
+					<change>Optimize code and minor bug fix</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>重寫程式來加強 RSS 2.0 及 XML 文件的支援</change>
+					<change>優化程式及除蟲</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2010-12-15</date>
+				<rev-version>1.0.0RC3</rev-version>
+				<changelog lang="en">
+					<change>Bug fix</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>除蟲</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2010-11-28</date>
+				<rev-version>1.0.0RC2</rev-version>
+				<changelog lang="en">
+					<change>Update for phpBB 3.0.8</change>
+					<change>Fix typo in install.xml</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新到 phpBB 3.0.8。</change>
+					<change>修正安裝檔案錯誤。</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2010-08-28</date>
+				<rev-version>1.0.0RC1</rev-version>
+				<changelog lang="en">
+					<change>Update mod files</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新安裝檔案。</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2009-11-17</date>
+				<rev-version>0.1</rev-version>
+				<changelog lang="en">
+					<change>Published Mod</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>公開發佈。</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2008-11-19</date>
+				<rev-version>0.0</rev-version>
+				<changelog lang="en">
+					<change>Initial development.</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>開始編寫。</change>
+				</changelog>
+			</entry>
+		</history>
+
+		<link-group>
+			<link type="language" href="contrib/zh-cmn-hant.xml" lang="en">Traditional Chinese translations and support.</link>
+			<link type="language" href="contrib/zh-cmn-hant.xml" lang="zh-TW">繁體中文翻譯及支援。</link>
+		</link-group>
+	</header>
+
+	<action-group>
+		<sql dbms="mysql"><![CDATA[CREATE TABLE phpbb_xmlfeeds (
+	feed_id smallint(4) unsigned NOT NULL auto_increment,
+	post_forum mediumint(8) unsigned NOT NULL default '0',
+	bot_id mediumint(8) unsigned NOT NULL default '0',
+	status tinyint(1) unsigned NOT NULL default '0',
+	feedname varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL,
+	url varchar(255) character set utf8 collate utf8_bin NOT NULL,
+	last_import int(11) unsigned NOT NULL default '0',
+	encodings varchar(32) character set utf8 collate utf8_bin NOT NULL,
+	topic_ttl tinyint(2) unsigned NOT NULL default '1',
+	post_items tinyint(2) unsigned NOT NULL default '10',
+	post_contents smallint(3) unsigned NOT NULL default '0',
+	feedname_topic tinyint(1) unsigned NOT NULL default '0',
+	inc_channel tinyint(1) unsigned NOT NULL default '1',
+	inc_cat tinyint(1) unsigned NOT NULL default '1',
+	feed_html tinyint(1) unsigned NOT NULL default '1',
+	PRIMARY KEY (feed_id),
+	KEY post_forum (post_forum)
+);]]></sql>
+
+		<copy>
+			<file from="root/adm/style/acp_find.html" to="adm/style/acp_find.html" />
+			<file from="root/includes/functions_find.php" to="includes/functions_find.php" />
+			<file from="root/includes/rss_parser.php" to="includes/rss_parser.php" />
+			<file from="root/includes/acp/acp_find.php" to="includes/acp/acp_find.php" />
+			<file from="root/includes/acp/info/acp_find.php" to="includes/acp/info/acp_find.php" />
+			<file from="root/language/en/find.php" to="language/en/find.php" />
+			<file from="root/language/en/find_posting.php" to="language/en/find_posting.php" />
+			<file from="root/language/en/acp/find.php" to="language/en/acp/find.php" />
+			<file from="root/rss_import.php" to="rss_import.php" />
+		</copy>
+
+		<open src="includes/constants.php">
+			<edit>
+				<find><![CDATA[// Additional constants
+define('VOTE_CONVERTED', 127);
+]]></find>
+				<action type="after-add"><![CDATA[//	RSS Input
+define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[// Additional tables
+]]></find>
+				<action type="after-add"><![CDATA[//	RSS Input
+define('FIND_TABLE',		$table_prefix . 'xmlfeeds');
+]]></action>
+			</edit>
+		</open>
+
+		<open src="language/en/acp/common.php">
+			<edit>
+				<find><![CDATA[	'ACP_FORUM_BASED_PERMISSIONS'	=> 'Forum based permissions',
+]]></find>
+				<action type="before-add"><![CDATA[	'ACP_FIND'					=> 'RSS Import Settings',
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'LOG_FORK'					=> '<strong>Copied topic</strong><br />» from %s',
+]]></find>
+				<action type="before-add"><![CDATA[
+	'LOG_FEED_ADDED'	=> '<strong>FIND: feed added</strong><br />» %s',
+	'LOG_FEED_DELETED'	=> '<strong>FIND: feed deleted</strong><br />» %s',
+	'LOG_FEED_UPDATED'	=> '<strong>FIND: feed updated</strong><br />» %s',
+]]></action>
+			</edit>
+		</open>
+
+		<diy-instructions lang="en">1. Install the ACP module
+
+     a. Login ACP
+     b. Go to: SYSTEM - MODULE MANAGEMENT -> acp -> general -> Board configuration page, select "RSS Import Settings [acp_find]" and click Add module.
+     c. Enable the module after the page refreshed.
+     d. Purge the cache.
+
+2. Initial setup
+
+	Follow instructions from contrib/setup.txt
+
+3. You can manage your feeds from GENERAL - BOARD CONFIGURATION -> RSS Import Settings by now.
+
+
+4. Read instructions from contrib/customize.txt if you like to customize this mod.
+
+
+Check post at http://www.phpbb.com/community/viewtopic.php?p=11231965#p11231965 for updates.
+</diy-instructions>
+	</action-group>
+</mod>
