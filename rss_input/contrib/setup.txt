@@ -8,23 +8,12 @@ Initial setup
 	2. Input "RSS Express [RSS Bot]" as the Bot name, for example. Please make sure the input  
 	contains the string "[RSS Bot]", this is the keyword to identify posting bot in this mod.         
 
-		Instructions for changing this keyword: 
-
-			Edit includes/constants.php 
-
-			FIND 
-				define('FIND_BOT_ID', '[RSS Bot]');        // string to identify our posting bot 
-			REPLACED WITH 
-				define('FIND_BOT_ID', '{My Bot ID}');        // string to identify our posting bot 
-
-		Note: Replace {My Bot ID} with text of your choice 
-
 	3. Select the Bot language, which is 'British English' if your phpBB3 site doesn't have other
 	languages installed. Bot language is used as posting language for the imported feed. 
 
 	4. If you don't know what to do, leave 'Agent match' blank for now. You can update this later. 
 
-	5. If you like to see this bot user in "Who is online" from the index page, Input "your server IP" 
+	5. If you like to display bot user in "Who is online" from the index page, Input "your server IP" 
 	for Bot IP address. If you don't, input "127.0.0.1". DON'T leave this blank! 
 
 
@@ -35,12 +24,14 @@ Initial setup
 	For example, add this mod's topic RSS from pbpbb.com:
 
 		Feed Name <- RSS Input - Development
-		Feed URL  <- http://www.phpbb.com/community/feed.php?f=70&t=1858455
+		Feed URL  <- http://www.phpbb.com/community/feed.php?t=1858455
 
 		Select Post Forum/Bot from drop down list
 		Leave other fileds untouched
 
 	Click 'Submit' to update feed list.
+
+	After screen refreshed, Click 'Activate' from the list to activate feed.
 
 	Note: Validate source before proceeding to next step.
 
@@ -58,11 +49,12 @@ Initial setup
 4) Secure rss_import.php 
  
 	Q. Why you need to secure rss_import.php? 
+	
 	A. Since rss_import.php generate some server loads and resides in your phpBB root, which is  
-	accessible by anyone, there are risks of DOS attack to your site(or DOS attack on the RSS source 
-	sites through rss_import.php). 
+	accessible by anyone, there are risks of DOS attack to your site. 
 
-	The default is to allow feed import by external program from your server IP.  
+
+	The default is to allow feed import by external program from "your server IP".  
 
 	1. Default is for dedicated web servers with own IP. Possible DOS attack handled by phpbb core. 
 	The recommendation is to do 2 and 3 below. 
@@ -89,8 +81,15 @@ Initial setup
 	program which user-agent contains "curl". This will be sufficient for attacks outside your server. 
 
 	3. If your web server's IP is shared with other sites, rename rss_import.php to what others can't
-	guess easily. For example, _somethingelse_.php. Changing the filename can prevents possible DOS
+	guess easily. For example, '_somethingelse_.php'. Changing the filename can prevents possible DOS
 	attack from any IPs. Remember to update your CRON job entries for the filename changes. 
+	
+	4. To further secure rss_import.php, you can rename and place this file in dedicated URL.
+
+	Example crontab entry: 
+
+		# Your phpbb site: automatic RSS feeds import, hourly update at xx30 
+		30  */1 * * *   curl -Ss http://www.example.com/_hard_to_guess/_other_name.php?feed=1,2,3 
 
 
 5) Verify the initial setup 

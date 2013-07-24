@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<?xml-stylesheet type="text/xsl" href="modx.prosilver.en.xsl"?>
-<!--For security purposes, please check: http
-://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
-<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.2.5.xsd">
-	<header>
+<?xml-stylesheet type="text/xsl" href="1.2.6/modx.prosilver.en.xsl"?>
+<!--For security purposes, please check: https
+://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at https://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.phpbb.com/mods/xml/modx-1.2.6.xsd">	<header>
 		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
 
 		<title lang="en">RSS Input</title>
@@ -18,14 +17,19 @@ This mod require:
 
   1. php > 5.0
   2. php setting "allow_url_fopen = on" or cURL library support.
-  3. php setting "safe_mode = on" is NOT supportted!</author-notes>
+  3. php setting "safe_mode = on" is NOT supportted!
+  
+IMPORTANT: Read contrib/readme.html before install.</author-notes>
 		<author-notes lang="zh-TW">程式碼建基於 2.0.x 'FIND' 外掛。
 
 這個外掛需要：
 
   1. php 5.0 以上
   2. php 設定 "allow_url_fopen = on" 或 支援 cURL 程式庫
-  3. 不支援 php 設定 "safe_mode = on"</author-notes>
+  3. 不支援 php 設定 "safe_mode = on"
+
+重要: 安裝前先閱讀 contrib/readme.html。</author-notes>
+		<github><![CDATA[https://github.com/PoPoutdoor/phpbb3_mods-rss_input]]></github>
 
 		<author-group>
 			<author>
@@ -34,15 +38,25 @@ This mod require:
 			</author>
 		</author-group>
 
-		<mod-version>1.0.1</mod-version>
+		<mod-version>1.0.3</mod-version>
 
 		<installation>
 			<level>easy</level>
 			<time>300</time>
-			<target-version>3.0.8</target-version>
+			<target-version>3.0.11</target-version>
 		</installation>
 
 		<history>
+			<entry>
+				<date>2013-07-24</date>
+				<rev-version>1.0.2(RC-6)</rev-version>
+				<changelog lang="en">
+					<change>Update package files</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新檔案</change>
+				</changelog>
+			</entry>
 			<entry>
 				<date>2011-04-06</date>
 				<rev-version>1.0.1(RC-5)</rev-version>
@@ -121,7 +135,11 @@ This mod require:
 
 		<link-group>
 			<link type="language" href="contrib/zh-cmn-hant.xml" lang="en">Traditional Chinese translations and support.</link>
-			<link type="language" href="contrib/zh-cmn-hant.xml" lang="zh-TW">繁體中文翻譯及支援。</link>
+			<link type="language" href="contrib/zh-cmn-hant.xml" lang="zh-TW">繁體中文支援。</link>
+			<link type="text" href="contrib/setup.txt" lang="en">Post install setup instructions</link>
+			<link type="text" href="contrib/setup.txt" lang="zh-TW">安裝後設定(英語)</link>
+			<link type="text" href="contrib/customize.txt" lang="en">Customize instructions</link>
+			<link type="text" href="contrib/customize.txt" lang="zh-TW">自定義設定(英語)</link>
 		</link-group>
 	</header>
 
