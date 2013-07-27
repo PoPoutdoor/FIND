@@ -286,7 +286,7 @@ return false;
 
 	// normalize and strip all control characters but "\n"
 	$xml = str_replace("\n", '[\n]', $xml);
-	$xml = preg_replace('#(?:[\x00-\x1F\x7F]+|(?:\xC2[\x80-\x9F])+)#', '', $xml);
+	$xml = preg_replace('#(?:[\x00-\x1F\x7F]+|(?:\xC2[\x80-\x9F])+)#u', '', $xml);
 	$xml = utf8_normalize_nfc($xml);
 	$xml = str_replace('[\n]', "\n", $xml);
 
@@ -907,7 +907,7 @@ function utf8_tidy($text, $newline = false)
 {
 	global $is_cjk;
 
-	if (function_exists('cjk_tidy') && $is_cjk)
+	if ($is_cjk)
 	{
 		$text = cjk_tidy($text);
 	}
