@@ -18,271 +18,31 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-/**
-* @package functions_find
-*/
-function prepare_xml($url, $recode, $feedname, &$msg)
-{
-	global $user;
-
-	if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
+	/**
+	* Convert CR to LF, strip extra LFs and spaces, multiple newlines to 2
+	* Filter unsupported html tags
+	*
+	* @param $text
+	* @param $is_html (booleans), option to retains supported html tags
+	* @return string
+	*/
+	function _filter($text, $is_html = false)
 	{
-		//libxml_use_internal_errors(true);
-		$xml = simplexml_load_file($url, 'SimpleXMLElement', LIBXML_NOCDATA);
-	}
-	// no supporting methods, issue error message
-	else
-	{
-		$msg['err'][] = $user->lang['NO_PHP_SUPPORT'];
-		return false;
-	}
+		$text = str_replace(array("\r", '&nbsp;', '&#32;'), array("\n", ' ', ' '), $text);
+		$text = html_entity_decode($text, ENT_QUOTES, "UTF-8");
 
-
-// Debug
-		// check compliance
-		$is_rss = isset($xml->channel) ? TRUE : FALSE;
-
-		$validate = ($is_rss) ? ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) ) : ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) );
-
-		if (!$validate)
+		if (!$is_html)
 		{
-			// Not validate, issue error
-			$msg['err'][] = sprintf($user->lang['NO_CHANNEL'], $feedname);
-//			continue;
-return false;
+			$text = strip_tags($text);
 		}
 
-		// check source timestamp
-		$now = time();
+		$text = preg_replace("# +?\n +?#", "\n", $text);
+		$text = preg_replace("#\n{3,}#", "\n\n", $text);
+		$text = preg_replace('# +#', ' ', $text);
 
-		if ($is_rss)
-		{
-			$ts = ( isset($xml->channel->lastBuildDate) ) ? $xml->channel->lastBuildDate : $xml->channel->pubDate;
-		}
-		else
-		{
-			// RFC3339 to RFC 822
-			// convert atom style timestamp (format: '2006-12-27T22:00:00-04:00')
-			$ts = preg_replace('/([0-9]{4}-[0-9]{2}-[0-9]{2})T(.*)([+|-][0-9]{2}):/is', "$1 $2 $3", $xml->updated);
-		}
-
-		$epoch = strtotime($ts);
-		// previous to PHP 5.1.0, strtotime() error is -1
-		$ts = ($epoch === false) ? $now : $epoch;
-
-		// RSS ttl support
-		$ttl = ( isset($xml->channel->ttl) ) ? $ts + $xml->channel->ttl * 60 : 0;
-
-		if ( $ts <= $last_update || $ttl >= $now)
-		{
-			// source not updated, skip to next
-			$msg['skip'][] = sprintf($user->lang['FEED_NONE'], $feedname);
-//			continue;
-return false;
-		}
-//var_dump($is_rss);
-		$feed = ($is_rss) ? $xml->xpath('//item') : $xml->entry;
-
-		$i = 0;
-		$items = array();
-
-		foreach ($feed as $item)
-		{
-			// Respect item limit setting
-			if ($item_limit > 0 AND $i++ === $item_limit)
-			{
-				break;
-			}
-
-			$items[] = (array) $item;
-		}
-
-/* BBC Chinese: 
-		[id] => tag:www.bbcchinese.com,2013-07-27:26109504 
-		[category] => Array	(
-			[0] => SimpleXMLElement Object			(
-				[@attributes] => Array				(
-					[term] => chinese_traditional 
-					[label] => chinese_traditional ) ) 
-			[1] => SimpleXMLElement Object			(
-				[@attributes] => Array				(
-					[term] => world 
-					[label] => 國際 ) ) ) 
-		[link] => Array	(
-			[0] => SimpleXMLElement Object			(
-				[@attributes] => Array			(
-					[rel] => alternate 
-					[type] => text/html 
-					[title] => story 
-					[href] => http://www.bbc.co.uk/zhongwen/trad/world/2013/07/130727_singer_weibo.shtml ) ) 
-			[1] => SimpleXMLElement Object			(
-				[@attributes] => Array			(
-					[rel] => related 
-					[type] => text/html 
-					[title] => story 
-					[href] => http://www.bbc.co.uk/zhongwen/trad/china/2013/07/130726_huanqiu_comments_control.shtml ) )
-			[2] => SimpleXMLElement Object			(
-				[@attributes] => Array			(
-					[rel] => related 
-					[type] => text/html 
-					[title] => story 
-					[href] => http://www.bbc.co.uk/zhongwen/trad/press_review/2013/07/130723_press_china.shtml ) ) 
-			[3] => SimpleXMLElement Object			(
-				[@attributes] => Array			(
-					[rel] => related 
-					[type] => text/html 
-					[title] => story 
-					[href] => http://www.bbc.co.uk/zhongwen/trad/china/2013/07/130722_iv_beijing_aiport_violence.shtml ) ) ) )
-*/
-			// Loop through the list of items, up to the limit.
-//			for ($i; $i >= 0; $i--)
-//			{
-/*
-			$this->_item['title']			= $this->_filter($this->_item['title']);
-			$this->_item['link']				= $this->_item['link'];
-			$this->_item['description']	= $this->_filter($this->_item['description'], true);
-			$this->_item['author']			= $this->_filter($this->_item['author']);
-			$this->_item['category']		= $this->_filter($this->_item['category']);
-			$this->_item['comments']		= $this->_item['comments'];
-			$this->_item['pubDate']			= $this->_date2unix($this->_item['pubDate']);
-			$this->_item['update']			= $this->_date2unix($this->_item['update']);
-*/
-				// ATOM only
-				$msg['err'][] = $items[$i]['updated'];
-				$msg['err'][] = $items[$i]['published'];
-				$msg['err'][] = $items[$i]['summary'];
-				$msg['err'][] = $items[$i]['content'];
-				// RSS only
-				$msg['err'][] = $items[$i]['pubDate'];
-				$msg['err'][] = $items[$i]['description'];
-				// Both
-				$msg['err'][] = $items[$i]['title'];
-				$msg['err'][] = $items[$i]['link'];
-//			}
-
-
-//print_r($items);
-$msg['err'][] = 'debug';
-return false;
-
-	// null page?
-	if (empty($xml))
-	{
-		$msg['err'][] = sprintf($user->lang['FILE_NULL'], $feedname, $url);
-		return false;
+		return trim($text);
 	}
 
-	// Validate feed, try to fix xml header if not validated.
-	// xml 1.0 spec, encoding: http://www.w3.org/TR/REC-xml/#dt-docent
-	if (!preg_match('#^<\?xml\s+version=["\']1\.[0-9]+["\'][^>]*>#is', $xml, $valid_xml_tag))
-	{
-		if (empty($recode))
-		{
-			$message = sprintf($user->lang['NOT_VALID_XML'], $feedname);
-			$error = true;
-		}
-		// Force recode, patch xml header
-		elseif (!preg_match('#^<\?xml\s[^>]*>#is', $xml, $xml_header))
-		{
-			$message = sprintf($user->lang['NO_XML_TAG'], $feedname);
-			$xml = '<?xml version="1.0" encoding="UTF-8"?><!-- XML header added by RSS Import //-->' . "\n$xml";
-		}
-		else
-		{
-			$xml = str_replace($xml_header[0], '<?xml version="1.0" encoding="UTF-8"?><!-- XML header patched by RSS Import //-->' . "\n", $xml);
-		}
-	}
-	else
-	{
-		if (!preg_match('#encoding=["\'](.*?)["\']#is', $valid_xml_tag[0], $match))
-		{
-			if (empty($recode))
-			{
-				$message = sprintf($user->lang['NO_ENCODINGS'], $feedname);
-				$error = true;
-			}
-			else
-			{
-				$xml = str_replace($valid_xml_tag[0], '<?xml version="1.0" encoding="UTF-8"?><!-- XML header replaced by RSS Import //-->' ."\n", $xml);
-			}
-		}
-		elseif (empty($recode))
-		{
-			$encoding = strtolower($match[1]);
-		}
-
-		$xml = str_replace($match[0], 'encoding="UTF-8"', $xml);
-	}
-
-	//	source related error, view source only in ACP
-	if (isset($message))
-	{
-		$msg['err'][] = $message . "\n\n";
-		$msg['err'][] = (class_exists('acp_find')) ? utf8_htmlspecialchars(utf8_substr($xml, 0, 800) . $user->lang['TRUNCATE']) . "\n\n" : '';
-		if (isset($error))
-		{
-			return false;
-		}
-	}
-
-	if (!empty($recode))
-	{
-		$encoding = $recode;
-	}
-
-	// Convert source to UTF-8
-	if ($encoding != 'utf-8')
-	{
-		// should check for unsupport encodings
-		$xml = utf8_recode($xml, $encoding);
-	}
-
-//--- $xml in UTF-8 from here ---//
-
-	// normalize and strip all control characters but "\n"
-	$xml = str_replace("\n", '[\n]', $xml);
-	$xml = preg_replace('#(?:[\x00-\x1F\x7F]+|(?:\xC2[\x80-\x9F])+)#', '', $xml);
-	$xml = utf8_normalize_nfc($xml);
-	$xml = str_replace('[\n]', "\n", $xml);
-
-	// try to convert some ATOM tags to RSS format
-	if (strpos($xml, '<feed') !== false)
-	{
-		switch ($url)
-		{
-			// BBC Chinese - http://www.bbcchinese.com
-			case 'http://www.bbc.co.uk/zhongwen/trad/index.xml':
-
-				if (preg_match_all('#<category[^>]*(?:label="(?!chinese_traditional).*?([^"]+)").+?>#uis', $xml, $match, PREG_PATTERN_ORDER))
-				{
-					$i = 0;
-					foreach ($match[0] as $not_used => $cat)
-					{
-						$xml = str_replace($cat, '<category>' . $match[1][$i] . '</category>', $xml);
-						$i++;
-					}
-				}
-
-				// convert the <link...rel="alternate"...href="url"...>...</link> tag to <link>url</link>
-				if (preg_match_all('#<link[^>]*(?:rel="alternate").+?(?:href="(https?[^"]+)").+?</link>#is', $xml, $match, PREG_PATTERN_ORDER))
-				{
-					$i = 0;
-					foreach ($match[0] as $not_used => $link)
-					{
-						$xml = str_replace($link, '<link>' . $match[1][$i] . '</link>', $xml);
-						$i++;
-					}
-				}
-			break;
-
-			default:
-				// Do conversion which safe for all or do nothing;
-			break;
-		}
-	}
-
-	return $xml;
-}
 
 function get_rss_content($sql_ids = '')
 {
@@ -359,12 +119,44 @@ function get_rss_content($sql_ids = '')
 		$user->data['user_colour']		= $row['user_colour'];
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
 
+/*
+	Try use simplexml
+		prepare_xml() - not used
+//-----------------------	
 		$xml = prepare_xml($row['url'], $row['encodings'], $feedname, $msg);
 		if ($xml === false)
 		{
 			continue;
 		}
+*/
+		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
+		{
+			// suppress error
+			//libxml_use_internal_errors(true);
+			$xml = simplexml_load_file($url, 'SimpleXMLElement', LIBXML_NOCDATA);
+		}
+		// no supporting methods, issue error message
+		else
+		{
+			$msg['err'][] = $user->lang['NO_PHP_SUPPORT'];
+			continue;
+		}
 
+// file not loaded, parser or source issue
+		// null page?
+		if ($xml === false)
+		{
+			$msg['err'][] = sprintf($user->lang['FILE_NULL'], $feedname, $url);
+			//$msg['err'][] = libxml_get_errors();
+			// libxml_clear_errors();
+			continue;
+		}
+
+
+/*
+	Try use simplexml
+		rss_parser() - not used
+//-----------------------
 		$parser = new rss_parser();
 		if ($parser->parse($xml))
 		{
@@ -375,9 +167,33 @@ function get_rss_content($sql_ids = '')
 				$msg['err'][] = sprintf($user->lang['NO_CHANNEL'], $feedname);
 				continue;
 			}
+*/
+		// check compliance
+		$is_rss = isset($xml->channel) ? TRUE : FALSE;
 
-			$now = time();
+		$validate = ($is_rss) ? ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) ) : ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) );
 
+//		if ( !is_null($xml->link['type']) && $xml->link['type'] == 'application/atom+xml' && !is_null($xml->updated) )
+		// RFC 4287
+/*		if ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) )
+		{
+			$validate = TRUE;
+			$is_rss = FALSE;
+		}
+		else if ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) )
+		{
+			$validate = TRUE;
+			$is_rss = TRUE;
+		}
+*/
+		if (!$validate)
+		{
+			// Not validate, issue error
+			$msg['err'][] = sprintf($user->lang['NO_CHANNEL'], $feedname);
+			continue;
+		}
+
+/*
 			// Use channel timestamp for feed update check
 			$channel_date	= $parser->channel['date'];
 			$channel_update = $parser->channel['update'];
@@ -405,7 +221,59 @@ function get_rss_content($sql_ids = '')
 				$msg['skip'][] = sprintf($user->lang['FEED_NONE'], $feedname);
 				continue;
 			}
+*/
+		// check source timestamp
+		$now = time();
 
+		if ($is_rss)
+		{
+			$ts = ( isset($xml->channel->lastBuildDate) ) ? $xml->channel->lastBuildDate : $xml->channel->pubDate;
+		}
+		else
+		{
+			// RFC3339 to RFC 822
+			// convert atom style timestamp (format: '2006-12-27T22:00:00-04:00')
+			$ts = preg_replace('/([0-9]{4}-[0-9]{2}-[0-9]{2})T(.*)([+|-][0-9]{2}):/is', "$1 $2 $3", $xml->updated);
+		}
+
+		$epoch = strtotime($ts);
+		// previous to PHP 5.1.0, strtotime() error is -1
+		$ts = ($epoch === false) ? $now : $epoch;
+
+/*
+		// RSS ttl support
+		$ttl = ( is_null($xml->channel->ttl) ) ? 0 : $xml->channel->ttl * 60;
+
+		if ( $ts <= $last_update || ($ts + $ttl) >= $now)
+*/
+		// RSS ttl support
+		$ttl = ( isset($xml->channel->ttl) ) ? $ts + $xml->channel->ttl * 60 : 0;
+
+		if ( $ts <= $last_update || $ttl >= $now)
+		{
+			// source not updated, skip to next
+			$msg['skip'][] = sprintf($user->lang['FEED_NONE'], $feedname);
+			continue;
+		}
+
+		// handle item/entry
+		$feed = ($is_rss) ? $xml->xpath('//item') : $xml->entry;
+
+		$i = 0;
+		$items = array();
+
+		foreach ($feed as $item)
+		{
+			// Respect item limit setting
+			if ($item_limit > 0 AND $i++ === $item_limit)
+			{
+				break;
+			}
+
+			$items[] = (array) $item;
+		}
+		
+/*
 			// Determine number of news items to process
 			$item_ary = $parser->items;
 			$i = sizeof($item_ary);
@@ -434,6 +302,7 @@ function get_rss_content($sql_ids = '')
 				usort($item_ary, '_pubDate_desc');
 				$latest_ts = (int) $item_ary[0]['pubDate'];
 			}
+*/
 
 			// message body vars
 			$processed = $skipped = 0;
@@ -447,9 +316,31 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// Loop through the list of items, up to the limit.
-			for ($i; $i >= 0; $i--)
+			for ($j; $j >= $i; $j++)
 			{
-				// Check if any updates.
+				/*
+					1. get timestamp(s)
+					2. convert timestamp to epoch
+					3. check against $last_update, skip item if <=
+					
+				*/
+				$item_ts = ($is_rss) ? $item[$j]['pubDate'] : preg_replace('/([0-9]{4}-[0-9]{2}-[0-9]{2})T(.*)([+|-][0-9]{2}):/is', "$1 $2 $3", $item[$j]['updated']);
+
+				$epoch = strtotime($item_ts);
+				// previous to PHP 5.1.0, strtotime() error is -1
+				$item_ts = ($epoch === false) ? FALSE : $epoch;
+
+				if ($item_ts <= $last_update)
+				{
+					// item not updated, skipped
+					$skipped++;
+					continue;
+				}
+
+			// Loop through the list of items, up to the limit.
+//			for ($i; $i >= 0; $i--)
+//			{
+/*				// Check if any updates.
 				$item_date = $item_ary[$i]['pubDate'];
 				$item_update = $item_ary[$i]['update'];
 				if (!empty($item_date) && !empty($item_update))
@@ -473,13 +364,19 @@ function get_rss_content($sql_ids = '')
 					$skipped++;
 					continue;
 				}
+*/
 
-				// We use Bot user language from here
+				/* We use Bot user language from here */
 				$user->lang_name = $row['user_lang'];
 				$user->add_lang('find_posting');
 
-				$title = $item_ary[$i]['title'];
-				$desc = $item_ary[$i]['description'];
+				$title = _filter($item[$i]['title']);
+				
+//--- old code below ---//
+
+				$desc = ($is_rss) ? $item[$i]['description']
+				(isset(
+
 				if (empty($title) && empty($desc))
 				{
 					// Not validate, issue error
@@ -644,11 +541,14 @@ function get_rss_content($sql_ids = '')
 				$msg['err'][] = sprintf($user->lang['FEED_ERR'], $feedname, $error[0], $error[1], $error[2], $error[3], $error[4]);
 			}
 		}
-
+/*
+	Try use simplexml
+		rss_parser() - not used
+//-----------------------
 		$parser->destroy();
 		//unset($parser);
 	}
-
+*/
 	$db->sql_freeresult($result);
 
 	return $msg;
