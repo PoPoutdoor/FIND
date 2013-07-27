@@ -24,7 +24,9 @@ if (!defined('IN_PHPBB'))
 function prepare_xml($url, $recode, $feedname, &$msg)
 {
 	global $user;
-
+/*
+	Try use simplexml
+//-----------------------	
 	// Fetch source, http only. Try curl first, then fallback to file_get_contents/fopen.
 	if (function_exists('curl_init') && !ini_get('safe_mode'))
 	{
@@ -77,12 +79,136 @@ function prepare_xml($url, $recode, $feedname, &$msg)
 			return false;
 		}
 	}
+*/
+	if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
+	{
+		//libxml_use_internal_errors(true);
+		$xml = simplexml_load_file($url, 'SimpleXMLElement', LIBXML_NOCDATA);
+	}
 	// no supporting methods, issue error message
 	else
 	{
 		$msg['err'][] = $user->lang['NO_PHP_SUPPORT'];
 		return false;
 	}
+
+
+// Debug
+		// check compliance
+		$is_rss = isset($xml->channel) ? TRUE : FALSE;
+
+		$validate = ($is_rss) ? ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) ) : ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) );
+
+		if (!$validate)
+		{
+			// Not validate, issue error
+			$msg['err'][] = sprintf($user->lang['NO_CHANNEL'], $feedname);
+//			continue;
+return false;
+		}
+
+		// check source timestamp
+		$now = time();
+
+		if ($is_rss)
+		{
+			$ts = ( isset($xml->channel->lastBuildDate) ) ? $xml->channel->lastBuildDate : $xml->channel->pubDate;
+		}
+		else
+		{
+			// RFC3339 to RFC 822
+			// convert atom style timestamp (format: '2006-12-27T22:00:00-04:00')
+			$ts = preg_replace('/([0-9]{4}-[0-9]{2}-[0-9]{2})T(.*)([+|-][0-9]{2}):/is', "$1 $2 $3", $xml->updated);
+		}
+
+		$epoch = strtotime($ts);
+		// previous to PHP 5.1.0, strtotime() error is -1
+		$ts = ($epoch === false) ? $now : $epoch;
+
+		// RSS ttl support
+		$ttl = ( isset($xml->channel->ttl) ) ? $ts + $xml->channel->ttl * 60 : 0;
+
+		if ( $ts <= $last_update || $ttl >= $now)
+		{
+			// source not updated, skip to next
+			$msg['skip'][] = sprintf($user->lang['FEED_NONE'], $feedname);
+//			continue;
+return false;
+		}
+//var_dump($is_rss);
+		$feed = ($is_rss) ? $xml->xpath('//item') : $xml->entry;
+
+		$i = 0;
+		$items = array();
+
+		foreach ($feed as $item)
+		{
+			// Respect item limit setting
+			if ($item_limit > 0 AND $i++ === $item_limit)
+			{
+				break;
+			}
+
+			$items[] = (array) $item;
+		}
+
+/* BBC Chinese: 
+		[id] => tag:www.bbcchinese.com,2013-07-27:26109504 
+		[category] => Array	(
+			[0] => SimpleXMLElement Object			(
+				[@attributes] => Array				(
+					[term] => chinese_traditional 
+					[label] => chinese_traditional ) ) 
+			[1] => SimpleXMLElement Object			(
+				[@attributes] => Array				(
+					[term] => world 
+					[label] => 國際 ) ) ) 
+		[link] => Array	(
+			[0] => SimpleXMLElement Object			(
+				[@attributes] => Array			(
+					[rel] => alternate 
+					[type] => text/html 
+					[title] => story 
+					[href] => http://www.bbc.co.uk/zhongwen/trad/world/2013/07/130727_singer_weibo.shtml ) ) 
+			[1] => SimpleXMLElement Object			(
+				[@attributes] => Array			(
+					[rel] => related 
+					[type] => text/html 
+					[title] => story 
+					[href] => http://www.bbc.co.uk/zhongwen/trad/china/2013/07/130726_huanqiu_comments_control.shtml ) )
+			[2] => SimpleXMLElement Object			(
+				[@attributes] => Array			(
+					[rel] => related 
+					[type] => text/html 
+					[title] => story 
+					[href] => http://www.bbc.co.uk/zhongwen/trad/press_review/2013/07/130723_press_china.shtml ) ) 
+			[3] => SimpleXMLElement Object			(
+				[@attributes] => Array			(
+					[rel] => related 
+					[type] => text/html 
+					[title] => story 
+					[href] => http://www.bbc.co.uk/zhongwen/trad/china/2013/07/130722_iv_beijing_aiport_violence.shtml ) ) ) )
+*/
+			// Loop through the list of items, up to the limit.
+//			for ($i; $i >= 0; $i--)
+//			{
+				// ATOM only
+				$msg['err'][] = $items[$i]['updated'];
+				$msg['err'][] = $items[$i]['published'];
+				$msg['err'][] = $items[$i]['summary'];
+				$msg['err'][] = $items[$i]['content'];
+				// RSS only
+				$msg['err'][] = $items[$i]['pubDate'];
+				$msg['err'][] = $items[$i]['description'];
+				// Both
+				$msg['err'][] = $items[$i]['title'];
+				$msg['err'][] = $items[$i]['link'];
+//			}
+
+
+//print_r($items);
+$msg['err'][] = 'debug';
+return false;
 
 	// null page?
 	if (empty($xml))

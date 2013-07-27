@@ -24,7 +24,7 @@ if (!defined('IN_PHPBB'))
 *	Note: xmlns:attribute is not supported.
 *
 *	RSS 2.0 specifications: http://validator.w3.org/feed/docs/rss2.html
-*	Atom 1.0 specifications: http://www.atomenabled.org/developers/syndication/atom-format-spec.php
+*	Atom 1.0 specifications: https://support.google.com/merchants/answer/160593?hl=en
 *
 *	Differences between RSS 2.0 and Atom 1.0: http://www.intertwingly.net/wiki/pie/Rss20AndAtom10Compared
 *
