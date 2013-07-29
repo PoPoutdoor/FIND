@@ -18,30 +18,6 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-/**
-* Convert date string to epoch format
-*
-* @param $rss_date, the input string
-* @return string, in epoch format. Null if not supported
-*/
-function _date2unix($date)
-{
-	global	$is_rss;
-	
-	$ts = trim($date);
-
-	if (!$is_rss)
-	{
-		// convert from RFC3339
-		$ts = preg_replace('/([0-9]{4}-[0-9]{2}-[0-9]{2})T(.*)([+|-][0-9]{2}):/is', "$1 $2 $3", $ts);
-	}
-
-	$epoch = strtotime($ts);
-	// false on error, or previous to PHP 5.1.0, strtotime() error is -1
-
-	return $epoch;
-}
-
 
 /**
 * Convert CR to LF, strip extra LFs and spaces, multiple newlines to 2
@@ -98,6 +74,8 @@ function get_rss_content($sql_ids = '')
 		ORDER BY f.post_forum ASC";
 	$result = $db->sql_query($sql);
 
+//var_dump(date_default_timezone_get());
+//return false;
 	// fetch news from selected feeds
 	while ($row = $db->sql_fetchrow($result))
 	{
@@ -197,11 +175,11 @@ function get_rss_content($sql_ids = '')
 
 		if ($is_rss)
 		{
-			$ts = ( isset($xml->channel->lastBuildDate) ) ? _date2unix($xml->channel->lastBuildDate) : _date2unix($xml->channel->pubDate);
+			$ts = ( isset($xml->channel->lastBuildDate) ) ? strtotime($xml->channel->lastBuildDate) : strtotime($xml->channel->pubDate);
 		}
 		else
 		{
-			$ts = _date2unix($xml->updated);
+			$ts = strtotime($xml->updated);
 		}
 
 		if ($ts === FALSE)
@@ -250,7 +228,7 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// check item timestamp
-			$item_ts = ($is_rss) ? _date2unix($item->pubDate) : _date2unix($item->updated);
+			$item_ts = ($is_rss) ? strtotime($item->pubDate) : strtotime($item->updated);
 
 			if ($item_ts === FALSE)
 			{
@@ -344,8 +322,6 @@ function get_rss_content($sql_ids = '')
 			{
 				$link	= isset($item->link['href']) ? fix_url($item->link['href']) : fix_url($item->link);
 			}
-//var_dump($link);
-//return false;
 
 			if (isset($item->comments))
 			{
@@ -553,6 +529,32 @@ function html2bb(&$html)
 	// br2nl
 	$html = preg_replace('#<br ?/?>#is', "\n", $html);	
 
+/*	Not working, need to preview first then the quote's OK.
+// TODO: need to hack preview code
+	// process phpbb.com <blockquote>...<cite>@somebody wrote:</cite>...</blockquote>
+	if (preg_match_all('#<blockquote.+?>(?:<cite>(.*?)</cite>)?(.*?)</blockquote>#is', $html, $tag, PREG_PATTERN_ORDER))
+	{
+		$i = 0;
+		foreach ($tag[0] as $not_used => $q_tag)
+		{
+			$wrote = str_replace(' wrote:', '', $tag[1][$i]);
+
+			if (empty($wrote))	// [quote]text[/quote]
+			{
+				$bbcode = '[quote]' . $tag[2][$i] . '[/quote]';
+			}
+			else
+			{
+				$bbcode = '[quote="' . $wrote . '"]' . $tag[2][$i] . '[/quote]';
+			}
+
+			$html = str_replace($q_tag, $bbcode, $html);
+			$i++;
+		}
+	}
+*/
+	// filter inline img tag from doyouhike.net
+	$html = preg_replace('#<img class="attach"[^>].+?/>#is', "\n[image]\n", $html);
 	// process <img> tags
 	if (preg_match_all('#<img[^>]*(?:src="(http[^"]+\.(?:gif|jp[2g]|png|xbm))).+?>#is', $html, $tag, PREG_PATTERN_ORDER))
 	{
@@ -607,32 +609,8 @@ function html2bb(&$html)
 		}
 	}
 
-	// process phpbb.com <blockquote>...<cite>@somebody wrote:</cite>...</blockquote>
-/*	if (preg_match_all('#<blockquote[^>]*(?:<cite>(.+)).+? >(.+?)</blockquote>#is', $html, $tag, PREG_PATTERN_ORDER))
-	{
-		$i = 0;
-		foreach ($tag[0] as $not_used => $a_tag)
-		{
-			$url = fix_url($tag[1][$i]);
-			$txt = str_replace(array(' ', "\n"), '', $tag[2][$i]);
-
-			if (empty($txt))	// [url]link[/url]
-			{
-				$bbcode = "[url]${url}[/url]";
-			}
-			else	// [url=link]text[/url]
-			{
-				$bbcode = "[url=${url}]${txt}[/url]";
-			}
-
-			$html = str_replace($a_tag, $bbcode, $html);
-			$i++;
-		}
-	}
-*/
 	
-	
-	$html = preg_replace("#\n{3,}#", "\n\n", $html);
+	$html = _filter($html);
 
 	return;
 }
