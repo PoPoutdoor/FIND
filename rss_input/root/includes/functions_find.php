@@ -20,38 +20,85 @@ if (!defined('IN_PHPBB'))
 
 
 /**
-* Convert CR to LF, strip extra LFs and spaces, multiple newlines to 2
-* Filter unsupported html tags
-*
-* @param $text
-* @param $is_html (booleans), option to retains supported html tags
-* @return string
-*/
-function _filter($text, $is_html = false)
-{
-	$text = str_replace(array("\r", '&nbsp;', '&#32;'), array("\n", ' ', ' '), $text);
-	$text = html_entity_decode($text, ENT_QUOTES, "UTF-8");
-
-	if (!$is_html)
-	{
-		$text = strip_tags($text);
-	}
-
-	$text = preg_replace("# +?\n +?#u", "\n", $text);
-	$text = preg_replace("#\n{3,}#u", "\n\n", $text);
-	$text = preg_replace('# +#u', ' ', $text);
-//	$text = preg_replace('#\n #u', "\n", $text);
-
-	return trim($text);
-}
-
-/**
 *	Main function
+*/
+/*
+
+FIXME: 
+
+- bbc chinese, multiple feed category/feed entry categlory
+
+TODO: 
+
+- yahoo hk, item extra tags
+
+	channel->source
+ 
+- bbc uk, item extra tag not parsed
+
+   <media:thumbnail width="66" height="49" url="http://news.bbcimg.co.uk/media/images/69031000/jpg/_69031488_69030640.jpg"/>  
+      <media:thumbnail width="144" height="81" url="http://news.bbcimg.co.uk/media/images/69031000/jpg/_69031489_69030640.jpg"/> 
+      
+      
+- bbc chinese, multiple entry link with 
+
+object(SimpleXMLElement)#16 (8) {
+	["category"]=> array(2) {
+		[0]=> object(SimpleXMLElement)#109 (1) {
+			["@attributes"]=> array(2) {
+				["term"]=> string(19) "chinese_traditional" 
+				["label"]=> string(19) "chinese_traditional" } } 
+		[1]=> object(SimpleXMLElement)#110 (1) {
+			["@attributes"]=> array(2) {
+				["term"]=> string(8) "business" 
+				["label"]=> string(6) "財經" } } } 
+	["link"]=> array(4) {
+		[0]=> object(SimpleXMLElement)#111 (1) {
+			["@attributes"]=> array(4) {
+				["rel"]=> string(9) "alternate" 
+				["type"]=> string(9) "text/html" 
+				["title"]=> string(5) "story" 
+				["href"]=> string(92) "http://www.bbc.co.uk/zhongwen/trad/business/2013/07/130730_press_china_nicaragua_canal.shtml" } } 
+		[1]=> object(SimpleXMLElement)#112 (1) {
+			["@attributes"]=> array(4) {
+				["rel"]=> string(7) "related" 
+				["type"]=> string(9) "text/html" 
+				["title"]=> string(5) "story" 
+				["href"]=> string(96) "http://www.bbc.co.uk/zhongwen/trad/press_review/2013/07/130702_ukpress_wang_jing_nicaragua.shtml" } } 
+		[2]=> object(SimpleXMLElement)#113 (1) {
+			["@attributes"]=> array(4) {
+				["rel"]=> string(7) "related" 
+				["type"]=> string(9) "text/html" 
+				["title"]=> string(5) "story" 
+				["href"]=> string(83) "http://www.bbc.co.uk/zhongwen/trad/china/2013/06/130625_china_nicaragua_canal.shtml" } } 
+		[3]=> object(SimpleXMLElement)#114 (1) {
+			["@attributes"]=> array(4) {
+				["rel"]=> string(7) "related" 
+				["type"]=> string(9) "text/html" 
+				["title"]=> string(5) "story" 
+				["href"]=> string(96) "http://www.bbc.co.uk/zhongwen/trad/china/2013/06/130611_nicaragua_chinese_fund_enterprises.shtml" } } } }
+
+
+<media:content>
+    <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"
+                     width="106"
+                     height="60">
+       <img alt="" width="106" height="60"
+            src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"/>
+    </media:thumbnail>
+    <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"
+                     width="144"
+                     height="81">
+       <img alt="GSK" width="144" height="81"
+            src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"/>
+    </media:thumbnail>
+</media:content>
+
 */
 function get_rss_content($sql_ids = '')
 {
-	global $phpbb_root_path, $phpEx, $db, $user;
-	global $is_cjk;	// This pass local vars to called functions
+	global $db, $user;
+	global $is_cjk, $html_filter, $text_filter, $url_filter;	// This pass local vars to called functions
 
 	$user->add_lang('find');
 
@@ -60,8 +107,7 @@ function get_rss_content($sql_ids = '')
 		trigger_error('NO_IDS');
 	}
 
-//	include($phpbb_root_path . 'includes/rss_parser.'.$phpEx);
-
+	$is_cjk = false;
 	// init return messages
 	$msg = array('ok' => '', 'skip' => '', 'err' => '');
 
@@ -74,8 +120,13 @@ function get_rss_content($sql_ids = '')
 		ORDER BY f.post_forum ASC";
 	$result = $db->sql_query($sql);
 
-//var_dump(date_default_timezone_get());
-//return false;
+	// load custom filter variables
+	if (!function_exists('rss_filter'))
+	{
+		global $phpbb_root_path, $phpEx;
+		include($phpbb_root_path . 'includes/find_filters.' . $phpEx);
+	}
+
 	// fetch news from selected feeds
 	while ($row = $db->sql_fetchrow($result))
 	{
@@ -99,7 +150,6 @@ function get_rss_content($sql_ids = '')
 		}
 
 		// Set CJK flag by bot language
-		$is_cjk = false;
 		if (defined('FIND_CJK') && function_exists('cjk_tidy'))
 		{
 			$ary = explode(',', FIND_CJK);
@@ -109,9 +159,9 @@ function get_rss_content($sql_ids = '')
 		// prepare some vars
 		$feed_id				= $row['feed_id'];
 		$feedname_topic	= $row['feedname_topic'];
-		$last_update		= $row['last_import'];
+		$last_update		= (int) $row['last_import'];
 		$item_limit			= (int) $row['post_items'];
-		$post_limit			= $row['post_contents'];
+		$post_limit			= (int) $row['post_contents'];
 		$inc_channel		= $row['inc_channel'];
 		$inc_cat				= $row['inc_cat'];
 		$inc_html			= $row['feed_html'];
@@ -125,20 +175,10 @@ function get_rss_content($sql_ids = '')
 		$user->data['user_colour']		= $row['user_colour'];
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
 
-/*
-	Try use simplexml
-		prepare_xml() - not used
-//-----------------------	
-		$xml = prepare_xml($row['url'], $row['encodings'], $feedname, $msg);
-		if ($xml === false)
-		{
-			continue;
-		}
-*/
 		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 		{
 			// suppress error
-			//libxml_use_internal_errors(true);
+			//		libxml_use_internal_errors(true);
 			$xml = simplexml_load_file($row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 		}
 		// no supporting methods, issue error message
@@ -153,11 +193,13 @@ function get_rss_content($sql_ids = '')
 		{
 			// TODO: Fix message, key=>val
 			$msg['err'][] = sprintf($user->lang['FILE_NULL'], $feedname, $url);
-			//$msg['err'][] = libxml_get_errors();
-			//libxml_clear_errors();
+			// used if suppressed
+			//		$msg['err'][] = libxml_get_errors();
+			//		libxml_clear_errors();
 			continue;
 		}
-
+//var_dump($xml);
+//return false;
 		// check compliance
 		$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
 
@@ -217,7 +259,6 @@ function get_rss_content($sql_ids = '')
 		$feed = ($is_rss) ? $xml->xpath('//item') : $xml->entry;
 
 		$i = 0;
-//		$items = array();
 
 		foreach ($feed as $item)
 		{
@@ -255,23 +296,20 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// preprocess item values
-			$title = _filter($item->title);
-			$desc = ($is_rss) ? _filter($item->description, TRUE) : ( (isset($item->content)) ? _filter($item->content, TRUE) : _filter($item->summary, TRUE) );
+			$title = rss_filter($item->title);
+			$desc = ($is_rss) ? $item->description : ( (isset($item->content)) ? $item->content : $item->summary );
 
-			if (empty($title) && empty($desc))
+			if (empty($title) || empty($desc))
 			{
 				// Not validate, issue error
 				$msg['err'][] = sprintf($user->lang['NO_ITEM_INFO'], $feedname);
 				continue;
 			}
-/* Do we need this?			
-			// Check to see if we have a subject - some atom feeds like blogspot provide an empty title.
-			$item_title = (!empty($title)) ? utf8_tidy($title) : utf8_tidy($desc);
-*/
-			$item_title = truncate_string(utf8_tidy($title), 60, 255, false, $user->lang['TRUNCATE']);
+
+			$item_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
 			
 			// prepare the message text
-		/* bb_message() */
+/* bb_message() */
 			$message = '';
 
 			// no timestamp (use channel timestamp)
@@ -284,16 +322,22 @@ function get_rss_content($sql_ids = '')
 			{
 				if (!is_object($item->category))
 				{
-					$message .= sprintf($user->lang['BB_CAT'], utf8_tidy(_filter($item->category)));
+					$message .= sprintf($user->lang['BB_CAT'], rss_filter($item->category));
 				}
+				// else - for bbc chinese
 			}
 
-			$author	= utf8_tidy(_filter($item->author));
 			if (isset($item->author->name))
 			{
-				$author	= utf8_tidy(_filter($item->author->name));
-				$author	.= (isset($item->author->email)) ? "\t" . _filter($item->author->email) : '';
+				$author	= rss_filter($item->author->name);
+				$author	.= (isset($item->author->email)) ? "\t" . rss_filter($item->author->email) : '';
 			}
+//			elseif (isset($item->author))
+			else
+			{
+				$author	= rss_filter($item->author);
+			}
+
 			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author): '';
 
 			// Now we add the content
@@ -304,16 +348,24 @@ function get_rss_content($sql_ids = '')
 
 			$desc = strip_tags($desc);
 
-			$desc = utf8_tidy($desc, true);
-			// Contents filter
-			if (defined('FIND_STRIP'))
+			// Apply custom filters
+			foreach ($text_filter as $filter)
 			{
-				$desc = str_replace(explode(',', FIND_STRIP), '', $desc);	// Strip defined patterns
+				$desc = str_replace($filter[0], $filter[1], $desc);
+			}
+			
+			$desc = rss_filter($desc, $inc_html, true);
+
+			if ($is_cjk && function_exists('cjk_tidy'))
+			{
+
+				$desc = cjk_tidy($desc);
+				$item_title = cjk_tidy($item_title);
 			}
 
 			if ($post_limit)
 			{
-				$desc = truncate_string($desc, $limits, 255, false, $user->lang['TRUNCATE']);
+				$desc = truncate_strings($desc, $post_limit, 255, FALSE, $user->lang['TRUNCATE']);
 			}
 
 			$message .= "\n" . $desc . "\n";
@@ -336,8 +388,7 @@ function get_rss_content($sql_ids = '')
 			{
 				$message .= (!empty($link)) ? "\n" . sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']) . "\n" : ((!empty($comments)) ? "\n" . sprintf($user->lang['BB_URL'], $comments, $user->lang['COMMENTS']) . "\n" : '');
 			}
-
-		/* end bb_message() */
+/* end bb_message() */
 			
 			if (empty($topic_ttl))
 			{
@@ -359,9 +410,9 @@ function get_rss_content($sql_ids = '')
 			if (!empty($inc_channel))
 			{
 				$channel			= ($is_rss) ? $xml->channel->title : $xml->title;
-				$channel			= utf8_tidy(_filter($channel));
+				$channel			= rss_filter($channel);
 				$channel_desc	= ($is_rss) ? $xml->channel->description : $xml->subtitle;
-				$channel_desc	= utf8_tidy(_filter($channel_desc));
+				$channel_desc	= rss_filter($channel_desc);
 				$channel_link	= ($is_rss) ? fix_url($xml->channel->link) : fix_url($xml->link['href']);
 				$image_url		= ($is_rss) ? fix_url($xml->channel->image->url) : fix_url($xml->logo);
 
@@ -376,7 +427,7 @@ function get_rss_content($sql_ids = '')
 
 			// Always show the copyright notice if provided
 			$channel_rights	= ($is_rss) ? $xml->channel->copyright : $xml->rights;
-			$channel_rights	= utf8_tidy(_filter(str_replace("©", "&#169;", $channel_rights)));
+			$channel_rights	= rss_filter(str_replace("©", "&#169;", $channel_rights));
 
 			$feed_info .= (!empty($channel_rights)) ? sprintf($user->lang['BB_COPYRIGHT'], $channel_rights) : '';
 
@@ -480,181 +531,11 @@ function get_rss_content($sql_ids = '')
 			$msg['skip'][] = sprintf($user->lang['FEED_SKIP'], $feedname, $skipped);
 		}
 	}
-/*
-	else
-	{
-		$error = $parser->parser_error;
-		if (!empty($error))
-		{
-			$msg['err'][] = sprintf($user->lang['FEED_ERR'], $feedname, $error[0], $error[1], $error[2], $error[3], $error[4]);
-		}
-	}
-*/
 
-/*
-	Try use simplexml
-		rss_parser() - not used
-//-----------------------
-		$parser->destroy();
-		//unset($parser);
-	}
-*/
 	$db->sql_freeresult($result);
 
 	return $msg;
 }
-
-
-
-/**
-*	Convert html tags to BBCode, supported tags are: strong,b,u,em,i,ul,ol,li,img,a,p (11)
-*/
-function html2bb(&$html)
-{
-	// <strong>...</strong>, <b>...</b>, <u>...</u>, <em>...</em>, <i>...</i>, <p>...</p>, <li>...</li>, <ul>...</ul>, </ol>
-	//	to [b]...[/b], [b]...[/b], [u]...[/u], [i]...[/i], [i]...[/i], \n\n...\n\n, [*]...\n, [list]...[/list], [/list]
-	$search = array('<strong>', '</strong>', '<b>', '</b>', '<u>', '</u>', '<em>', '</em>', '<i>', '</i>',
-		'<p>', '</p>', '<li>', '</li>', '<ul>', '</ul>', '</ol>',
-	);
-	$replace = array('[b]', '[/b]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[i]', '[/i]',
-		"\n\n", "\n\n", '[*]', "\n", '[list]', '[/list]', '[/list]',
-	);
-	$html = str_replace($search, $replace, $html);
-	$html = preg_replace('#<ul\s.*?>#is', '[list]', $html);	// <ul ...>
-	$html = preg_replace('#<ol\s+type="(\w+)">#is', '[list=\\1]', $html);	// <ol ...> to [list=...]
-	$html = preg_replace('#<ol\s+style=".*?decimal">#is', '[list=1]', $html);	//detect <ol style="list-style-type: decimal">
-	$html = preg_replace('#<p\s.*?>#is', "\n\n", $html);	// <p ...>
-	$html = preg_replace('#<li\s.*?>#is', '[*]', $html);	// <li ...>
-
-	// br2nl
-	$html = preg_replace('#<br ?/?>#is', "\n", $html);	
-
-/*	Not working, need to preview first then the quote's OK.
-// TODO: need to hack preview code
-	// process phpbb.com <blockquote>...<cite>@somebody wrote:</cite>...</blockquote>
-	if (preg_match_all('#<blockquote.+?>(?:<cite>(.*?)</cite>)?(.*?)</blockquote>#is', $html, $tag, PREG_PATTERN_ORDER))
-	{
-		$i = 0;
-		foreach ($tag[0] as $not_used => $q_tag)
-		{
-			$wrote = str_replace(' wrote:', '', $tag[1][$i]);
-
-			if (empty($wrote))	// [quote]text[/quote]
-			{
-				$bbcode = '[quote]' . $tag[2][$i] . '[/quote]';
-			}
-			else
-			{
-				$bbcode = '[quote="' . $wrote . '"]' . $tag[2][$i] . '[/quote]';
-			}
-
-			$html = str_replace($q_tag, $bbcode, $html);
-			$i++;
-		}
-	}
-*/
-	// filter inline img tag from doyouhike.net
-	$html = preg_replace('#<img class="attach"[^>].+?/>#is', "\n[image]\n", $html);
-	// process <img> tags
-	if (preg_match_all('#<img[^>]*(?:src="(http[^"]+\.(?:gif|jp[2g]|png|xbm))).+?>#is', $html, $tag, PREG_PATTERN_ORDER))
-	{
-		global $config;
-
-		$i = 0;
-		foreach ($tag[0] as $not_used => $img_tag)
-		{
-			$url = fix_url($tag[1][$i]);
-			$bbcode = '[img]' . $url . '[/img]';
-			// Note: This is from function bbcode_img()
-			// if the embeded image exceeds limits, return $url
-			if (($config['max_post_img_height'] || $config['max_post_img_width']) && ini_get('allow_url_fopen'))
-			{
-				$stats = @getimagesize($url);
-
-				if ($stats !== false)
-				{
-					if ($config['max_post_img_height'] && $config['max_post_img_height'] < $stats[1]
-						 || $config['max_post_img_width'] && $config['max_post_img_width'] < $stats[0])
-					{
-						$bbcode = $url;
-					}
-				}
-			}
-
-			$html = str_replace($img_tag, $bbcode, $html);
-			$i++;
-		}
-	}
-
-	// process <a> tags
-	if (preg_match_all('#<a[^>]*(?:href="(http[^"]+)).+? >(.+?)</a>#is', $html, $tag, PREG_PATTERN_ORDER))
-	{
-		$i = 0;
-		foreach ($tag[0] as $not_used => $a_tag)
-		{
-			$url = fix_url($tag[1][$i]);
-			$txt = str_replace(array(' ', "\n"), '', $tag[2][$i]);
-
-			if (empty($txt))	// [url]link[/url]
-			{
-				$bbcode = "[url]${url}[/url]";
-			}
-			else	// [url=link]text[/url]
-			{
-				$bbcode = "[url=${url}]${txt}[/url]";
-			}
-
-			$html = str_replace($a_tag, $bbcode, $html);
-			$i++;
-		}
-	}
-
-	
-	$html = _filter($html);
-
-	return;
-}
-
-
-
-/**
-*	URL filter
-*/
-function fix_url($url)
-{
-	$url = trim($url);
-
-	// Strip yahoo redirect links
-	$pos = strpos($url, '*http://');
-	if ($pos !== false)
-	{
-		$url = substr($url, $pos+1);
-	}
-
-	// Additional filters below
-	$url = str_replace(' ', '%20', $url);
-
-	return $url;
-}
-
-
-/**
-*	Cleanup spacing and newlines, with aditional spacing fix-ups for CJK text
-*/
-function utf8_tidy($text, $newline = false)
-{
-	global $is_cjk;
-
-	if (function_exists('cjk_tidy') && $is_cjk)
-	{
-		$text = cjk_tidy($text);
-	}
-
-	$text = ($newline) ? preg_replace("#\n{3,}#", "\n\n", $text) : str_replace("\n", '', $text);
-
-	return trim($text);
-}
-
 
 
 /**
@@ -715,79 +596,125 @@ function rss_autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_
 
 
 /**
-* Fix CJK full-width punct-alpnum spacing
-*
-* utf8 ncr values for CJK full-width symbols:
-*	12288 - 12290, 12298 - 12318
-*	65281 - 65312
-*	65313 - 65338		excludes english capital letters
-*	65339 - 65344
-*	65345 - 65370		excludes english letters
-*	65371 - 65377
-*	65504 - 65510
-*
-*	HK font				37032, 24419, 22487
+*	Convert html tags to BBCode, supported tags are: strong,b,u,em,i,ul,ol,li,img,a,p (11)
 */
-function cjk_tidy($text)
+function html2bb(&$html)
 {
-	// decode first!
-	$text = utf8_decode_ncr($text);
+	global $html_filter;
 
-	// Preserve space around [] , for posting with bbcode tags
-	$text = preg_replace('#\] +([[:punct:]])#', ']&#32;\\1', $text);
-	$text = preg_replace('#([[:punct:]]) +\[#', '\\1&#32;[', $text);
-	// encolsed words with spaces
-	$text = preg_replace('#([[:alnum:][:punct:]\-\+]+)#', '&#32;\\1&#32;', $text);
+	// <strong>...</strong>, <b>...</b>, <u>...</u>, <em>...</em>, <i>...</i>, <p>...</p>, <li>...</li>, <ul>...</ul>, </ol>
+	//	to [b]...[/b], [b]...[/b], [u]...[/u], [i]...[/i], [i]...[/i], \n\n...\n\n, [*]...\n, [list]...[/list], [/list]
+	$search = array('<strong>', '</strong>', '<b>', '</b>', '<u>', '</u>', '<em>', '</em>', '<i>', '</i>',
+		'<p>', '</p>', '<li>', '</li>', '<ul>', '</ul>', '</ol>',
+	);
+	$replace = array('[b]', '[/b]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[i]', '[/i]',
+		"\n\n", "\n\n", '[*]', "\n", '[list]', '[/list]', '[/list]',
+	);
+	$html = str_replace($search, $replace, $html);
+	$html = preg_replace('#<ul\s.*?>#is', '[list]', $html);	// <ul ...>
+	$html = preg_replace('#<ol\s+type="(\w+)">#is', '[list=\\1]', $html);	// <ol ...> to [list=...]
+	$html = preg_replace('#<ol\s+style=".*?decimal">#is', '[list=1]', $html);	//detect <ol style="list-style-type: decimal">
+	$html = preg_replace('#<p\s.*?>#is', "\n\n", $html);	// <p ...>
+	$html = preg_replace('#<li\s.*?>#is', '[*]', $html);	// <li ...>
 
-	$text = utf8_encode_ncr($text);
+	// br2nl
+	$html = preg_replace('#<br ?/?>#is', "\n", $html);	
 
-	$text = preg_replace('/(?:(&#[0-9]{5};)(\w+)|(\w+)(&#[0-9]{5};))/', '\\1 \\2', $text);
-	$text = preg_replace('/\]&#32;(&#[0-9]{5};)/', ']\\1', $text);
-	$text = preg_replace('/(&#[0-9]{5};)&#32;\[/', '\\1[', $text);
-	// trim full-width spaces
-	$text = preg_replace('/^\p{Zs}+/u', '', $text);
-	$text = preg_replace('/\p{Zs}+$/u', '', $text);
-
-	// restore space
-	$text = str_replace('&#32;', ' ', $text);
-
-	// process spacings
-	$val = 12287;
-	while ($val <= 12318)
+/*	Not working, need to preview first then the quote's OK.
+// TODO: need to hack preview code
+	// process phpbb.com <blockquote>...<cite>@somebody wrote:</cite>...</blockquote>
+	if (preg_match_all('#<blockquote.+?>(?:<cite>(.*?)</cite>)?(.*?)</blockquote>#is', $html, $tag, PREG_PATTERN_ORDER))
 	{
-		$val++;
-		if ($val > 12290 && $val < 12298)
+		$i = 0;
+		foreach ($tag[0] as $not_used => $q_tag)
 		{
-			continue;
+			$wrote = str_replace(' wrote:', '', $tag[1][$i]);
+
+			if (empty($wrote))	// [quote]text[/quote]
+			{
+				$bbcode = '[quote]' . $tag[2][$i] . '[/quote]';
+			}
+			else
+			{
+				$bbcode = '[quote="' . $wrote . '"]' . $tag[2][$i] . '[/quote]';
+			}
+
+			$html = str_replace($q_tag, $bbcode, $html);
+			$i++;
 		}
-
-		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
 	}
-
-	$val = 65280;
-	while ($val <= 65378)
+*/
+	// apply custom html filters
+	foreach ($html_filter as $filter)
 	{
-		$val++;
-		if ( ($val > 65312 && $val < 65339) || ($val > 65344 && $val < 65371) )
+		$html = preg_replace($filter[0], $filter[1], $html);
+	}
+	
+	// process <img> tags
+	if (preg_match_all('#<img[^>]*(?:src="(http[^"]+\.(?:gif|jp[2g]|png|xbm))).+?>#is', $html, $tag, PREG_PATTERN_ORDER))
+	{
+		global $config;
+
+		$i = 0;
+		foreach ($tag[0] as $not_used => $img_tag)
 		{
-			// skip Full-width letters and part not in range
-			continue;
+			$bbcode = '';
+			$url = fix_url($tag[1][$i]);
+
+			if ($url)
+			{
+				$bbcode = '[img]' . $url . '[/img]';
+				// Note: This is from function bbcode_img()
+				// if the embeded image exceeds limits, return $url
+				if (($config['max_post_img_height'] || $config['max_post_img_width']) && ini_get('allow_url_fopen'))
+				{
+					$stats = @getimagesize($url);
+
+					if ($stats !== false)
+					{
+						if ($config['max_post_img_height'] && $config['max_post_img_height'] < $stats[1]
+							 || $config['max_post_img_width'] && $config['max_post_img_width'] < $stats[0])
+						{
+							$bbcode = $url;
+						}
+					}
+				}
+			}
+
+			$html = str_replace($img_tag, $bbcode, $html);
+			$i++;
 		}
-
-		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
 	}
 
-	$val = 65503;
-	while ($val <= 65510)
+	// process <a> tags
+	if (preg_match_all('#<a[^>]*(?:href="(http[^"]+)).+? >(.+?)</a>#is', $html, $tag, PREG_PATTERN_ORDER))
 	{
-		$val++;
+		$i = 0;
+		foreach ($tag[0] as $not_used => $a_tag)
+		{
+			$bbcode = '';
+			$url = fix_url($tag[1][$i]);
 
-		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+			if ($url)
+			{
+				$txt = str_replace(array(' ', "\n"), '', $tag[2][$i]);
+
+				if (empty($txt))	// [url]link[/url]
+				{
+					$bbcode = "[url]${url}[/url]";
+				}
+				else	// [url=link]text[/url]
+				{
+					$bbcode = "[url=${url}]${txt}[/url]";
+				}
+			}
+
+			$html = str_replace($a_tag, $bbcode, $html);
+			$i++;
+		}
 	}
 
-	$text = utf8_decode_ncr($text);
-
-	return $text;
+	return;
 }
 
 

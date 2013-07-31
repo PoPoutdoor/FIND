@@ -10,7 +10,7 @@ A. Change posting bot keyword
 		REPLACED WITH 
 			define('FIND_BOT_ID', '{My Bot ID}');        // string to identify our posting bot 
 
-	Note: Replace {My Bot ID} with text of your choice 
+	Note: Replace {My Bot ID} with text of your choice and create/edit posting bot
 
 
 B. Change appearance of imported post
@@ -37,17 +37,11 @@ C. Add topic icon
 	Note: Checkup the id number from ACP, then change '6' with the icon ID of your choice.
 
 
-D. Add content filter
+D. Add custom filters
 
-	Edit includes/constants.php
+	Edit includes/find_filters.php
 
-		FIND
-			define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
-		ADD AFTER
-			define('FIND_STRIP', 'Read More');   // comma delimited string to strip from item contents
-
-	Note: Original written for the removal of duplicate "Read More" link from source. You may use
-	the content filter to remove any text from source.
+	Note: To use html filter, enable ACP feed html setting first!
 
 
 E. Change "Read More" text link to link (Source: [url]http://the_source/link[/url]) only.
