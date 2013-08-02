@@ -5,7 +5,7 @@
 *
 * @package RSS_input
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
+* @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 * @language English [en]
@@ -61,7 +61,7 @@ $lang = array_merge($lang, array(
 	'TOPIC_WEEKLY'		=> 'Weekly',
 
 	// form error
-	'ENCODE_TOO_LONG'	=> 'Feed encoding string too long. Maximum 32 characters!',
+//	'ENCODE_TOO_LONG'	=> 'Feed encoding string too long. Maximum 32 characters!',
 	'NAME_TOO_LONG'	=> 'Feed name too long. Maximum 255 characters!',
 	'NAME_TOO_SHORT'	=> 'Feed name too short. Requires 3 or more characters!',
 	'NO_FEEDNAME'		=> 'You have to set the feed name!',
@@ -84,18 +84,18 @@ $lang = array_merge($lang, array(
 	'EDIT_FEED'				=> 'Edit Feed',
 	'EDIT_FEED_EXPLAIN'	=> 'The form below will allow you to customise the importing properties of this xml news feed.',
 
-	'FEED_CAT'					=> 'Category info',
-	'FEED_CAT_EXPLAIN'		=> 'If supplied, include the feed category information in post.',
-	'FEED_CHANNEL'				=> 'Channel info',
-	'FEED_CHANNEL_EXPLAIN'	=> 'If supplied, include the feed channel information in post.',
-	'FEED_HTML'					=> 'HTML support',
-	'FEED_HTML_EXPLAIN'		=> 'If set to "Yes", embedded HTML will be converted to supported BBCode.',
-	'FEED_NAME'					=> 'Feed Name',
-	'FEED_NAME_EXPLAIN'		=> 'Name of this feed. Used in ACP to identify feeds. Will be used as the fallback subject name of imported news post',
-	'FEED_RECODE'				=> 'Force Encoding',
-	'FEED_RECODE_EXPLAIN'	=> 'Leave blank unless posted text looks like corrupted!<br />This setting intended to fix incorrect/missing encoding info.',
-	'FEED_URL'					=> 'Feed URL',
-	'FEED_URL_EXPLAIN'		=> 'Validate <a href="http://www.feedvalidator.org/" onclick="window.open(this.href); return false"><em>here</em></a> first!<br />Enter the URL for the news feed (min. 12, max. 255 chars).',
+	'FEED_CAT'				=> 'Category info',
+	'FEED_CAT_EXPLAIN'	=> 'If supplied, include the feed category information in post.',
+	'FEED_INFO'				=> 'Feed info',
+	'FEED_INFO_EXPLAIN'	=> 'If supplied, include the feed information in post.',
+	'FEED_HTML'				=> 'HTML support',
+	'FEED_HTML_EXPLAIN'	=> 'If set to "Yes", embedded HTML will be converted to supported BBCode.',
+	'FEED_NAME'				=> 'Feed Name',
+	'FEED_NAME_EXPLAIN'	=> 'Name of this feed. Used in ACP to identify feeds. Will be used as the fallback subject name of imported news post',
+//	'FEED_RECODE'				=> 'Force Encoding',
+//	'FEED_RECODE_EXPLAIN'	=> 'Leave blank unless posted text looks like corrupted!<br />This setting intended to fix incorrect/missing encoding info.',
+	'FEED_URL'				=> 'Feed URL',
+	'FEED_URL_EXPLAIN'	=> 'Validate <a href="http://www.feedvalidator.org/" onclick="window.open(this.href); return false"><em>here</em></a> first!<br />Enter the URL for the news feed (min. 12, max. 255 chars).',
 	'FEEDNAME_TOPIC'				=> 'Feed Name as Subject',
 	'FEEDNAME_TOPIC_EXPLAIN'	=> 'If supplied, the subject of post is automatic generated from the source channel information. Select "Yes" if you want to use <strong>Feed Name</strong> as the post subject.',
 

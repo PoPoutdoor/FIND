@@ -5,7 +5,7 @@
 *
 * @package RSS_input
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
+* @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 */
@@ -186,12 +186,12 @@ class acp_find
 					'url'				=> request_var('url', ''),
 					'post_forum'	=> request_var('post_forum', 0),
 					'bot_id'			=> request_var('bot_id', 0),
-					'encodings'		=> utf8_normalize_nfc(request_var('encodings', '', true)),
+				//	'encodings'		=> utf8_normalize_nfc(request_var('encodings', '', true)),
 
 					'topic_ttl'			=> request_var('topic_ttl', 1),
 					'feedname_topic'	=> request_var('feedname_topic', 0),
 
-					'post_items'		=> request_var('post_items', 10),
+					'post_items'		=> request_var('post_items', 0),
 					'post_contents'	=> request_var('post_contents', 0),
 					'inc_channel'		=> request_var('inc_channel', 1),
 					'inc_cat'			=> request_var('inc_cat', 1),
@@ -329,11 +329,11 @@ class acp_find
 					{
 						$error[] = $user->lang['URL_NOT_VALID'];
 					}
-					// Does anyone knows the maximum encoding string length?
-					if (!empty($rss_row['encodings']) && utf8_strlen(htmlspecialchars_decode($rss_row['encodings'])) > 32)
-					{
-						$error[] = $user->lang['ENCODE_TOO_LONG'];
-					}
+				//	// Does anyone knows the maximum encoding string length?
+				//	if (!empty($rss_row['encodings']) && utf8_strlen(htmlspecialchars_decode($rss_row['encodings'])) > 32)
+				//	{
+				//		$error[] = $user->lang['ENCODE_TOO_LONG'];
+				//	}
 
 					if (!sizeof($error))
 					{
@@ -342,7 +342,7 @@ class acp_find
 							'bot_id'				=> (int) $rss_row['bot_id'],
 							'feedname'			=> (string) $rss_row['feedname'],
 							'url'					=> (string) $rss_row['url'],
-							'encodings'			=> (string) strtolower($rss_row['encodings']),
+						//	'encodings'			=> (string) strtolower($rss_row['encodings']),
 							'topic_ttl'			=> (int) $rss_row['topic_ttl'],
 							'post_items'		=> (int) $rss_row['post_items'],
 							'post_contents'	=> (int) $rss_row['post_contents'],
@@ -389,7 +389,7 @@ class acp_find
 					'FEED_URL'			=> $rss_row['url'],
 					'S_FORUM_OPTIONS'	=> $s_forum_options,
 					'S_BOT_OPTIONS'	=> $s_bot_options,
-					'FEED_RECODE'		=> $rss_row['encodings'],
+				//	'FEED_RECODE'		=> $rss_row['encodings'],
 
 					'S_TOPIC_TTL'	=> $s_topic_ttl,
 					'S_FEEDNAME'	=> $s_['feedname_topic'],
@@ -397,7 +397,7 @@ class acp_find
 					'POST_ITEMS'	=> $rss_row['post_items'],
 					'POST_LIMITS'	=> $rss_row['post_contents'],
 
-					'S_CHANNEL'		=> $s_['inc_channel'],
+					'S_FEEDINFO'		=> $s_['inc_channel'],
 					'S_CAT'			=> $s_['inc_cat'],
 					'S_HTML'			=> $s_['feed_html'],
 					'S_EDIT_FEED'	=> true,

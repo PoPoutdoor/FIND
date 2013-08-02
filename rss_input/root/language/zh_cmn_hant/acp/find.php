@@ -5,7 +5,7 @@
 *
 * @package RSS_input
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
+* @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 * @language Traditional Chinese [zh_cmn_hant]
@@ -60,7 +60,7 @@ $lang = array_merge($lang, array(
 	'TOPIC_WEEKLY'		=> '每週',
 
 	// form error
-	'ENCODE_TOO_LONG'	=> '強制篇碼字數太長：至多 32 個字符！',
+//	'ENCODE_TOO_LONG'	=> '強制篇碼字數太長：至多 32 個字符！',
 	'NAME_TOO_LONG'	=> '新聞來源名稱太長：至多 255 個字符！',
 	'NAME_TOO_SHORT'	=> '新聞來源名稱太短：至少需要 3 個字符！',
 	'NO_FEED_URL'		=> '你必需設定新聞來源地址！',
@@ -83,18 +83,18 @@ $lang = array_merge($lang, array(
 	'EDIT_FEED'				=> '編輯來源',
 	'EDIT_FEED_EXPLAIN'	=> '這個表單用來設定引進特性。',
 
-	'FEED_CAT'						=> '分類訊息',
-	'FEED_CAT_EXPLAIN'			=> '設定是否在文章顯示分類訊息（如果來源包含）。',
-	'FEED_CHANNEL'					=> '頻道訊息',
-	'FEED_CHANNEL_EXPLAIN'		=> '設定是否在文章顯示頻道訊息（如果來源包含）。',
-	'FEED_HTML'						=> 'HTML 支援',
-	'FEED_HTML_EXPLAIN'			=> '如果啟用，來源包含的 HTML 就會在發表的文章中轉換成支援的 BBCode。',
-	'FEED_NAME'						=> '新聞來源名稱',
-	'FEED_NAME_EXPLAIN'			=> 'ACP 操作顯示的名稱。若引進時來源沒提供主題，文章主題自動使用這個名稱。',
-	'FEED_RECODE'					=> '強制編碼',
-	'FEED_RECODE_EXPLAIN'		=> '正常不需設定(留空)！這個設定是解決來源編碼表頭決失或錯誤的問題。',
-	'FEED_URL'						=> '新聞來源地址',
-	'FEED_URL_EXPLAIN'			=> '請先到<a href="http://www.feedvalidator.org/" onclick="window.open(this.href); return false"><em>這裡</em></a>確認來源是否符合相關標準！<br />來源的 URL 地址 (12-255 字符)。',
+	'FEED_CAT'				=> '分類訊息',
+	'FEED_CAT_EXPLAIN'	=> '設定是否在文章顯示分類訊息（如果來源包含）。',
+	'FEED_INFO'				=> '來源訊息',
+	'FEED_INFO_EXPLAIN'	=> '設定是否在文章顯示來源訊息（如果來源包含）。',
+	'FEED_HTML'				=> 'HTML 支援',
+	'FEED_HTML_EXPLAIN'	=> '如果啟用，來源包含的 HTML 就會在發表的文章中轉換成支援的 BBCode。',
+	'FEED_NAME'				=> '新聞來源名稱',
+	'FEED_NAME_EXPLAIN'	=> 'ACP 操作顯示的名稱。若引進時來源沒提供主題，文章主題自動使用這個名稱。',
+//	'FEED_RECODE'					=> '強制編碼',
+//	'FEED_RECODE_EXPLAIN'		=> '正常不需設定(留空)！這個設定是解決來源編碼表頭決失或錯誤的問題。',
+	'FEED_URL'				=> '新聞來源地址',
+	'FEED_URL_EXPLAIN'	=> '請先到<a href="http://www.feedvalidator.org/" onclick="window.open(this.href); return false"><em>這裡</em></a>確認來源是否符合相關標準！<br />來源的 URL 地址 (12-255 字符)。',
 	'FEEDNAME_TOPIC'				=> '來源名稱做主題',
 	'FEEDNAME_TOPIC_EXPLAIN'	=> '如果來源包含主題訊息，發表的主題是自動產生的。如果選擇“是”，就會採用上面設定的‘來源名稱’做發表主題。',
 

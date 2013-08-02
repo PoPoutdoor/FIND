@@ -5,7 +5,7 @@
 *
 * @package RSS_input
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
+* @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 * @language Traditional Chinese [zh_cmn_hant]
@@ -38,23 +38,25 @@ if (empty($lang) || !is_array($lang))
 // in a url you again do not need to specify an order e.g., 'Click %sHERE%s' is fine
 
 $lang = array_merge($lang, array(
-	'BB_AUTHOR'				=> '發表人：[color=brown]%s[/color]' . "\n" ,
-	'BB_CAT'					=> '[size=125]分類：[color=darkred]%s[/color][/size]' . "\n",
-	'BB_CHANNEL'			=> '[size=125]%s[/size]',
-	'BB_COPYRIGHT'			=> '[size=85]版權訊息：[color=#808000]%s[/color][/size]' . "\n",
-	'BB_CHANNEL_DESC'		=> '[size=85][color=indigo]%s[/color][/size]' . "\n",
-	'BB_CHANNEL_DATE'		=> '消息於 [color=green]%s[/color] 發佈',
-	'BB_CHANNEL_UPDATE'	=> '消息於 [color=green]%s[/color] 更新',
-	'BB_POST_AT'			=> '於 [color=green]%s[/color] 發表',
-	'BB_TITLE'				=> '[color=darkblue][size=150]%s[/size][/color]' . "\n",
-	'BB_UPDATE_AT'			=> '於 [color=green]%s[/color] 更新',
-	'BB_URL'					=> '[url=%s]%s[/url]',
+	'BB_AUTHOR'			=> '由 [color=brown]%s[/color]' . "\n" ,
+	'BB_CAT'				=> '[size=125]分類：[color=darkred]%s[/color][/size]' . "\n",
+	'BB_COPYRIGHT'		=> '[size=85]版權訊息：[color=#808000]%s[/color][/size]',
+	'BB_POST_SRC'		=> '來自 [color=green]%s[/color]' . "\n",
+	'BB_POST_TS'		=> '於 [color=green]%s[/color] 發佈' . "\n",
+	'BB_SOURCE_TITLE'	=> '[size=125]%s[/size]',
+	'BB_SOURCE_DESC'	=> '[size=85][color=indigo]%s[/color][/size]' . "\n",
+	'BB_SOURCE_DATE'	=> '消息於 [color=green]%s[/color] 更新',
+	'BB_TITLE'			=> '[color=darkblue][size=150]%s[/size][/color]' . "\n",
+	'BB_URL'				=> '[url=%s]%s[/url]',
 
-	'COMMENTS'	=> '[i]發表意見[/i]',
+	'COMMENTS'	=> '[i]發表意見[/i]' . "\n",
 	'HR'			=> "\n--------\n",	// Horizontal line.
 	'READ_MORE'	=> '[i]閱讀全文[/i]',
 	'TAB'			=> ' - ',	// Tab.
 	'TRUNCATE'	=> '﹍',		// Truncate string.
+// custom message below
+	'IMG_RESTRICT'	=> "\n" . '[size=125][受保護圖象][/size]' . "\n",
+
 ));
 
 ?>

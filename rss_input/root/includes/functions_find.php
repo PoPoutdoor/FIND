@@ -5,7 +5,7 @@
 *
 * @package RSS_input
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
+* @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 */
@@ -21,79 +21,6 @@ if (!defined('IN_PHPBB'))
 
 /**
 *	Main function
-*/
-/*
-
-FIXME: 
-
-- bbc chinese, multiple feed category/feed entry categlory
-
-TODO: 
-
-- yahoo hk, item extra tags
-
-	channel->source
- 
-- bbc uk, item extra tag not parsed
-
-   <media:thumbnail width="66" height="49" url="http://news.bbcimg.co.uk/media/images/69031000/jpg/_69031488_69030640.jpg"/>  
-      <media:thumbnail width="144" height="81" url="http://news.bbcimg.co.uk/media/images/69031000/jpg/_69031489_69030640.jpg"/> 
-      
-      
-- bbc chinese, multiple entry link with 
-
-object(SimpleXMLElement)#16 (8) {
-	["category"]=> array(2) {
-		[0]=> object(SimpleXMLElement)#109 (1) {
-			["@attributes"]=> array(2) {
-				["term"]=> string(19) "chinese_traditional" 
-				["label"]=> string(19) "chinese_traditional" } } 
-		[1]=> object(SimpleXMLElement)#110 (1) {
-			["@attributes"]=> array(2) {
-				["term"]=> string(8) "business" 
-				["label"]=> string(6) "財經" } } } 
-	["link"]=> array(4) {
-		[0]=> object(SimpleXMLElement)#111 (1) {
-			["@attributes"]=> array(4) {
-				["rel"]=> string(9) "alternate" 
-				["type"]=> string(9) "text/html" 
-				["title"]=> string(5) "story" 
-				["href"]=> string(92) "http://www.bbc.co.uk/zhongwen/trad/business/2013/07/130730_press_china_nicaragua_canal.shtml" } } 
-		[1]=> object(SimpleXMLElement)#112 (1) {
-			["@attributes"]=> array(4) {
-				["rel"]=> string(7) "related" 
-				["type"]=> string(9) "text/html" 
-				["title"]=> string(5) "story" 
-				["href"]=> string(96) "http://www.bbc.co.uk/zhongwen/trad/press_review/2013/07/130702_ukpress_wang_jing_nicaragua.shtml" } } 
-		[2]=> object(SimpleXMLElement)#113 (1) {
-			["@attributes"]=> array(4) {
-				["rel"]=> string(7) "related" 
-				["type"]=> string(9) "text/html" 
-				["title"]=> string(5) "story" 
-				["href"]=> string(83) "http://www.bbc.co.uk/zhongwen/trad/china/2013/06/130625_china_nicaragua_canal.shtml" } } 
-		[3]=> object(SimpleXMLElement)#114 (1) {
-			["@attributes"]=> array(4) {
-				["rel"]=> string(7) "related" 
-				["type"]=> string(9) "text/html" 
-				["title"]=> string(5) "story" 
-				["href"]=> string(96) "http://www.bbc.co.uk/zhongwen/trad/china/2013/06/130611_nicaragua_chinese_fund_enterprises.shtml" } } } }
-
-
-<media:content>
-    <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"
-                     width="106"
-                     height="60">
-       <img alt="" width="106" height="60"
-            src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"/>
-    </media:thumbnail>
-    <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"
-                     width="144"
-                     height="81">
-       <img alt="GSK" width="144" height="81"
-            src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/07/29/130729191739_gsk_144x81_getty_nocredit.jpg"/>
-    </media:thumbnail>
-</media:content>
-
 */
 function get_rss_content($sql_ids = '')
 {
@@ -135,7 +62,7 @@ function get_rss_content($sql_ids = '')
 		// feed not active, skipped to next
 		if (!$row['status'])
 		{
-			$msg['skip'][] = sprintf($user->lang['NOT_ACTIVE'], $feedname);
+			$msg['skip'][] = sprintf($user->lang['FEED_NOT_ACTIVE'], $feedname);
 			continue;
 		}
 
@@ -162,7 +89,7 @@ function get_rss_content($sql_ids = '')
 		$last_update		= (int) $row['last_import'];
 		$item_limit			= (int) $row['post_items'];
 		$post_limit			= (int) $row['post_contents'];
-		$inc_channel		= $row['inc_channel'];
+		$inc_src_info		= $row['inc_channel'];
 		$inc_cat				= $row['inc_cat'];
 		$inc_html			= $row['feed_html'];
 		$topic_ttl			= $row['topic_ttl'];
@@ -178,7 +105,7 @@ function get_rss_content($sql_ids = '')
 		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 		{
 			// suppress error
-			//		libxml_use_internal_errors(true);
+			libxml_use_internal_errors(true);
 			$xml = simplexml_load_file($row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 		}
 		// no supporting methods, issue error message
@@ -192,23 +119,21 @@ function get_rss_content($sql_ids = '')
 		if ($xml === false)
 		{
 			// TODO: Fix message, key=>val
-			$msg['err'][] = sprintf($user->lang['FILE_NULL'], $feedname, $url);
-			// used if suppressed
+			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $url);
+			// used if suppressed and handle error in this code
 			//		$msg['err'][] = libxml_get_errors();
-			//		libxml_clear_errors();
+			libxml_clear_errors();
 			continue;
 		}
-//var_dump($xml);
-//return false;
+
 		// check compliance
 		$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
 
 		$validate = ($is_rss) ? ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) ) : ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) );
-
 		if (!$validate)
 		{
 			// Not validate, issue error
-			$msg['err'][] = sprintf($user->lang['NO_CHANNEL'], $feedname);
+			$msg['err'][] = sprintf($user->lang['FEED_NOT_VALID'], $feedname);
 			continue;
 		}
 
@@ -217,30 +142,40 @@ function get_rss_content($sql_ids = '')
 
 		if ($is_rss)
 		{
-			$ts = ( isset($xml->channel->lastBuildDate) ) ? strtotime($xml->channel->lastBuildDate) : strtotime($xml->channel->pubDate);
+			$feed_ts = ( isset($xml->channel->lastBuildDate) ) ? strtotime($xml->channel->lastBuildDate) : strtotime($xml->channel->pubDate);
 		}
 		else
 		{
-			$ts = strtotime($xml->updated);
+			$feed_ts = strtotime($xml->updated);
 		}
 
-		if ($ts === FALSE)
+		/* $feed_ts is last feed update timestamp(or last build for RSS) */
+
+		if ($feed_ts === FALSE)
 		{
-			// timestamp error, should issue error.
-			$ts = $now;
+			// issue error for ATOM but continued for RSS
+			if ($is_rss)
+			{
+				$feed_ts = $now;	
+			}
+			else
+			{
+				$msg['err'][] = sprintf($user->lang['FEED_TS_INVALID'], $feedname);
+				continue;
+			}
 		}
 
 		// RSS ttl support
-		$ttl = ( isset($xml->channel->ttl) ) ? $ts + $xml->channel->ttl * 60 : 0;
+		$ttl = ( isset($xml->channel->ttl) ) ? $feed_ts + $xml->channel->ttl * 60 : 0;
 
-		if ( $ts <= $last_update || $ttl >= $now)
+		if ( $feed_ts <= $last_update || $ttl >= $now)
 		{
 			// source not updated, skip to next
-			$msg['skip'][] = sprintf($user->lang['FEED_NONE'], $feedname);
+			$msg['skip'][] = sprintf($user->lang['FEED_NO_UPDATES'], $feedname);
 			continue;
 		}
 
-		/* We use Bot user language from here */
+/* We use Bot user language from here */
 		$user->lang_name = $row['user_lang'];
 		$user->add_lang('find_posting');
 
@@ -256,11 +191,10 @@ function get_rss_content($sql_ids = '')
 		}
 
 		// handle item/entry
+		$i = 0;
 		$feed = ($is_rss) ? $xml->xpath('//item') : $xml->entry;
 
-		$i = 0;
-
-		foreach ($feed as $item)
+		foreach ($feed as $post)
 		{
 			// Respect item limit setting
 			if ($item_limit && $i++ === $item_limit)
@@ -269,76 +203,77 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// check item timestamp
-			$item_ts = ($is_rss) ? strtotime($item->pubDate) : strtotime($item->updated);
+			$post_ts = ($is_rss) ? strtotime($post->pubDate) : (isset($post->updated) ? strtotime($post->updated) : strtotime($post->published));
 
-			if ($item_ts === FALSE)
+			if ($post_ts === FALSE)
 			{
-				// timestamp error, should issue error.
-				$item_ts = $ts;
+				$post_ts = $feed_ts;	// should issue timestamp error and exit this feed processing
 			}
 
-			if ($item_ts <= $last_update)
+			if ($post_ts <= $last_update)
 			{
 				// item outdated, skipped
 				continue;
 			}
 
-			if ($latest_ts < $item_ts)
+			if ($latest_ts < $post_ts)
 			{
-				$latest_ts =  $item_ts;
+				$latest_ts =  $post_ts;
 			}
 
 			// skip to next item if outdated
-			if ($last_update >= $item_ts)
+			if ($last_update >= $post_ts)
 			{
 				$skipped++;
 				continue;
 			}
 
 			// preprocess item values
-			$title = rss_filter($item->title);
-			$desc = ($is_rss) ? $item->description : ( (isset($item->content)) ? $item->content : $item->summary );
+			$title = rss_filter($post->title);
+			$desc = ($is_rss) ? $post->description : ( (isset($post->content)) ? $post->content : $post->summary );
 
-			if (empty($title) || empty($desc))
+			if (empty($title) && empty($desc))
 			{
 				// Not validate, issue error
-				$msg['err'][] = sprintf($user->lang['NO_ITEM_INFO'], $feedname);
+				$msg['err'][] = sprintf($user->lang['NO_POST_INFO'], $feedname);
 				continue;
 			}
 
-			$item_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
+			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
 			
 			// prepare the message text
 /* bb_message() */
 			$message = '';
 
-			// no timestamp (use channel timestamp)
-			if ($item_ts != $ts)
+			// no timestamp
+			if ($post_ts != $feed_ts)
 			{
-				$message .= sprintf($user->lang['BB_POST_AT'], $user->format_date($item_ts)) . "\n";
+				$message .= sprintf($user->lang['BB_POST_TS'], $user->format_date($post_ts));
 			}
 
-			if ($inc_cat && isset($item->category))
+			if ($inc_cat && isset($post->category))
 			{
-				if (!is_object($item->category))
-				{
-					$message .= sprintf($user->lang['BB_CAT'], rss_filter($item->category));
-				}
-				// else - for bbc chinese
+				$post_cat = rss_filter($post->category);
+				$message .= (!empty($post_cat)) ? sprintf($user->lang['BB_CAT'], rss_filter($post->category)) : '';
 			}
 
-			if (isset($item->author->name))
+			if (isset($post->source))
 			{
-				$author	= rss_filter($item->author->name);
-				$author	.= (isset($item->author->email)) ? "\t" . rss_filter($item->author->email) : '';
+				$post_source = rss_filter($post->source);
+				$message .= (!empty($post_source)) ? sprintf($user->lang['BB_POST_SRC'], $post_source) : '';
 			}
-//			elseif (isset($item->author))
+
+			if (isset($post->author->name))
+			{
+				$author	= rss_filter($post->author->name);
+				$author	.= (isset($post->author->email)) ? $user->lang['TAB'] . rss_filter($post->author->email) : '';
+			}
 			else
 			{
-				$author	= rss_filter($item->author);
+				$author	= rss_filter($post->author);
 			}
 
-			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author): '';
+			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author) : '';
 
 			// Now we add the content
 			if ($inc_html)
@@ -358,45 +293,44 @@ function get_rss_content($sql_ids = '')
 
 			if ($is_cjk && function_exists('cjk_tidy'))
 			{
-
 				$desc = cjk_tidy($desc);
-				$item_title = cjk_tidy($item_title);
+				$post_title = cjk_tidy($post_title);
 			}
 
 			if ($post_limit)
 			{
-				$desc = truncate_strings($desc, $post_limit, 255, FALSE, $user->lang['TRUNCATE']);
+				$desc = truncate_string($desc, $post_limit, 255, FALSE, $user->lang['TRUNCATE']);
 			}
 
 			$message .= "\n" . $desc . "\n";
 
-			if (isset($item->link))
+			$link	= ($is_rss) ? fix_url($post->link) : fix_url($post->link['href']);
+
+			if (isset($post->comments))
 			{
-				$link	= isset($item->link['href']) ? fix_url($item->link['href']) : fix_url($item->link);
+				$comments = fix_url($post->comments);
 			}
 
-			if (isset($item->comments))
+			if (!empty($link))
 			{
-				$comments = fix_url($item->comments);
+				$message .= "\n" . sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']);
+				$message .= (empty($comments)) ? "\n" : $message .= $user->lang['TAB'];
 			}
-
-			if (!empty($link) && !empty($comments))
+			
+			if (!empty($comments))
 			{
-				$message .= "\n" . sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']) . $user->lang['TAB'] . sprintf($user->lang['BB_URL'], $comments, $user->lang['COMMENTS']) . "\n";
-			}
-			else
-			{
-				$message .= (!empty($link)) ? "\n" . sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']) . "\n" : ((!empty($comments)) ? "\n" . sprintf($user->lang['BB_URL'], $comments, $user->lang['COMMENTS']) . "\n" : '');
+				$message .= (empty($link)) ? "\n" : '';
+				$message .= sprintf($user->lang['BB_URL'], $comments, $user->lang['COMMENTS']);
 			}
 /* end bb_message() */
 			
 			if (empty($topic_ttl))
 			{
-				$post_ary[] = array($item_title, $message);
+				$post_ary[] = array($post_title, $message);
 			}
 			else
 			{
-				$contents = sprintf($user->lang['BB_TITLE'], $item_title) . $message . "\n\n" . $contents;
+				$contents = sprintf($user->lang['BB_TITLE'], $post_title) . $message . "\n\n" . $contents;
 			}
 
 			$processed++;
@@ -407,33 +341,43 @@ function get_rss_content($sql_ids = '')
 			$heading = $feed_info = '';
 
 			// should we include the channel info
-			if (!empty($inc_channel))
+			if (!empty($inc_src_info))
 			{
-				$channel			= ($is_rss) ? $xml->channel->title : $xml->title;
-				$channel			= rss_filter($channel);
-				$channel_desc	= ($is_rss) ? $xml->channel->description : $xml->subtitle;
-				$channel_desc	= rss_filter($channel_desc);
-				$channel_link	= ($is_rss) ? fix_url($xml->channel->link) : fix_url($xml->link['href']);
-				$image_url		= ($is_rss) ? fix_url($xml->channel->image->url) : fix_url($xml->logo);
+				$source_title	= ($is_rss) ? rss_filter($xml->channel->title) : rss_filter($xml->title);
+				$source_desc	= ($is_rss) ? rss_filter($xml->channel->description) : rss_filter($xml->subtitle);
+				$source_link	= ($is_rss) ? fix_url($xml->channel->link) : fix_url($xml->link['href']);
+				$source_img_url= ($is_rss) ? fix_url($xml->channel->image->url) : fix_url($xml->logo);
+				$source_cat		= ($is_rss) ? rss_filter($xml->channel->category) : rss_filter($xml->category);
 
-				$heading .= (!empty($image_url)) ? sprintf($user->lang['BB_URL'], $channel_link, "[img]${image_url}[/img]") : (!empty($channel_link) ? sprintf($user->lang['BB_URL'], $channel_link, sprintf($user->lang['BB_CHANNEL'], $channel)) : sprintf($user->lang['BB_CHANNEL'], $channel));
+				$heading .= (!empty($source_img_url)) ? sprintf($user->lang['BB_URL'], $source_link, "[img]${source_img_url}[/img]") : sprintf($user->lang['BB_URL'], $source_link, sprintf($user->lang['BB_SOURCE_TITLE'], $source_title));
 				$heading .= "\n";
-
-				if (!empty($channel_desc) && $channel_desc != $channel)
+				
+				if ($source_desc != $source_title)
 				{
-					$heading .= sprintf($user->lang['BB_CHANNEL_DESC'], $channel_desc);
+					$heading .= sprintf($user->lang['BB_SOURCE_DESC'], $source_desc);
 				}
+				
+				$heading .= (!empty($source_cat)) ? sprintf($user->lang['BB_CAT'], $source_cat) : '';
 			}
 
 			// Always show the copyright notice if provided
-			$channel_rights	= ($is_rss) ? $xml->channel->copyright : $xml->rights;
-			$channel_rights	= rss_filter(str_replace("©", "&#169;", $channel_rights));
+			$source_rights	= ($is_rss) ? $xml->channel->copyright : $xml->rights;
+			$source_rights	= rss_filter(str_replace("©", "&#169;", $source_rights));
 
-			$feed_info .= (!empty($channel_rights)) ? sprintf($user->lang['BB_COPYRIGHT'], $channel_rights) : '';
-
-			if ($ts != $now)
+			if (!empty($source_rights))
 			{
-				$feed_info .= sprintf($user->lang['BB_CHANNEL_DATE'], $user->format_date($ts)) . $user->lang['HR'];
+				$feed_info .= sprintf($user->lang['BB_COPYRIGHT'], $source_rights);
+				$feed_info .= ($feed_ts == $now) ? $user->lang['HR'] : "\n";
+			}
+			
+			if ($feed_ts != $now)
+			{
+				$feed_info .= sprintf($user->lang['BB_SOURCE_DATE'], $user->format_date($feed_ts)) . $user->lang['HR'];
+			}
+
+			if (empty($source_rights) && $feed_ts == $now)
+			{
+				$feed_info .= "\n";
 			}
 
 			if (!$latest_ts)
@@ -468,7 +412,7 @@ function get_rss_content($sql_ids = '')
 				$subject = $feedname;
 				if (empty($feedname_topic))
 				{
-					$subject = (!empty($channel)) ? $channel : ((!empty($channel_desc)) ? $channel_desc : $feedname);
+					$subject = (!empty($source_title)) ? $source_title : ((!empty($source_desc)) ? $source_desc : $feedname);
 				}
 				$subject = truncate_string($subject, 60, 255, false, $user->lang['TRUNCATE']);
 

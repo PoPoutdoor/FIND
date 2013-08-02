@@ -5,7 +5,7 @@
 *
 * @package RSS_input
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
+* @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 * @language English [en]
@@ -39,24 +39,17 @@ if (empty($lang) || !is_array($lang))
 // in a url you again do not need to specify an order e.g., 'Click %sHERE%s' is fine
 
 $lang = array_merge($lang, array(
-	'BOT_NOT_ACTIVE'	=> 'Post bot [%s] is not active!',
-	'CLOCK_ISSUE'		=> '[%s] Clock drift issue: time difference more than 30 seconds! Possible local server clock drift or source timestamps data contains error.',
-	'CURL_ERR'			=> '[%s] Failed to fetch data from %s: HTTP status %s: %s',
-	'FILE_NULL'			=> '[%s] Empty file returned from %s',
-	'FOPEN_ERR'			=> '[%s] Failed to fetch data from %s',
-	'NO_CHANNEL'		=> '[%s] Source is not compliance: missing Channel info!',
-	'NO_ENCODINGS'		=> '[%s] No encoding info. Set "UTF-8" at Force Encoding setting may fix this source related issue.',
+	'BOT_NOT_ACTIVE'	=> 'Bot [%s] is not activated!',
+	'FEED_FETCH_ERR'	=> '[%s] Failed to fetch data from %s',
+	'FEED_NOT_ACTIVE'	=> 'Feed [%s] is not activated!',
+	'FEED_NOT_VALID'	=> '[%s] is not compliance to standards, please check xml source!<br />FYI: <a href="http://cyber.law.harvard.edu/rss/rss.html" />RSS 2.0 Specification</a>, <a href="http://www.ietf.org/rfc/rfc4287.txt" />Atom 1.0 Specification</a>',
+	'FEED_TS_INVALID'	=> '[%s] The last updated timestamp is not valid!',
 	'NO_IDS'				=> 'No feed id passed!',
-	'NO_ITEM_INFO'		=> '[%s] Source is not compliance: missing item title and item description! Source should at least provide either one info.',
-	'NO_ITEMS'			=> '[%s] No items found! Seems something wrong while reading the source.',
-	'NO_PHP_SUPPORT'	=> 'The PHP installed on this server does not have <strong>cURL</strong> or <strong>allow_url_fopen</strong> active!<br />This Mod needs either to work.',
-	'NO_XML_TAG'		=> '[%s] Force Encoding is set to fix missing source xml tag.',
-	'NOT_ACTIVE'		=> '[%s] not active!',
-	'NOT_VALID_XML'	=> '[%s] is not compliance: xml tag missing or not rss+xml document. Set Force Encoding with "UTF-8" may fix valid source with missing xml tag.',
+	'NO_PHP_SUPPORT'	=> 'Installed PHP does not have <strong>SimpleXML</strong> support or <strong>allow_url_fopen</strong> activated!<br />This Mod needs both to work.',
+	'NO_POST_INFO'		=> '[%s] News does not provide title and content!',
 	
 	// acp import results
-	'FEED_ERR'		=> '[%s] XML error: %s at line %d column %d byte %d.',
-	'FEED_NONE'		=> '[%s] processed without updates.',
+	'FEED_NO_UPDATES'	=> '[%s] processed without updates.',
 	'FEED_OK'		=> '[%s] processed with %d new item(s).',
 	'FEED_SKIP'		=> '[%s] processed with %d old item(s)',
 
