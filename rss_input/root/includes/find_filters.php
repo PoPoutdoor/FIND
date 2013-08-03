@@ -23,6 +23,8 @@ if (!defined('IN_PHPBB'))
 global $user;
 //global $phpbb_root_path;
 
+$user->add_lang('find_posting');
+
 $html_filter = $text_filter = $url_filter = array();
 /*
 	FIND - Custom filters for rss:description/atom:content
@@ -88,8 +90,8 @@ function rss_filter($text, $is_html = false, $newline = false)
 	}
 
 	$text = str_replace("\r", "\n", $text);
-	$text = preg_replace("/\n(?:$|\t)+/", "\n", $text);
-	$text = preg_replace("#(^|\n)\p{Zs}+#u", '\\1', $text);
+	$text = preg_replace("/(\p{Zs}|\t)+/u", '\\1', $text);
+	$text = preg_replace("#(^|\n)(?:\p{Zs}|\t)+?#u", '\\1', $text);
 	$text = ($newline) ? preg_replace("/\n{3,}/", "\n\n", $text) : str_replace("\n", '', $text);
 
 	return trim($text);

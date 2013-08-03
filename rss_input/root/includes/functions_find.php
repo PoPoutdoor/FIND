@@ -24,6 +24,14 @@ if (!defined('IN_PHPBB'))
 */
 function get_rss_content($sql_ids = '')
 {
+/*
+	timestamp issue, seems not rfc822
+	
+	<lastBuildDate>Sun, 04 Aug 2013 04:16:11 +0800</lastBuildDate>
+	<pubDate>Fri, 02 Aug 2013 16:24:00 +0800</pubDate>
+	
+*/
+
 	global $db, $user;
 	global $is_cjk, $html_filter, $text_filter, $url_filter;	// This pass local vars to called functions
 
@@ -84,20 +92,20 @@ function get_rss_content($sql_ids = '')
 		}
 
 		// prepare some vars
-		$feed_id				= $row['feed_id'];
-		$feedname_topic	= $row['feedname_topic'];
+		$feed_id				= (int) $row['feed_id'];
+		$feedname_topic	= (bool) $row['feedname_topic'];
 		$last_update		= (int) $row['last_import'];
 		$item_limit			= (int) $row['post_items'];
 		$post_limit			= (int) $row['post_contents'];
-		$inc_src_info		= $row['inc_channel'];
-		$inc_cat				= $row['inc_cat'];
-		$inc_html			= $row['feed_html'];
-		$topic_ttl			= $row['topic_ttl'];
-		$forum_id			= $row['post_forum'];
+		$inc_src_info		= (bool) $row['inc_channel'];
+		$inc_cat				= (bool) $row['inc_cat'];
+		$inc_html			= (bool) $row['feed_html'];
+		$topic_ttl			= (int) $row['topic_ttl'];
+		$forum_id			= (int) $row['post_forum'];
 		$forum_name			= $row['forum_name'];
 
 		$user->ip							= $row['bot_ip'];
-		$user->data['user_id']			= $row['bot_id'];	// also used for update forum tracking
+		$user->data['user_id']			= (int) $row['bot_id'];	// also used for update forum tracking
 		$user->data['username']			= $bot_name;
 		$user->data['user_colour']		= $row['user_colour'];
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
@@ -119,7 +127,7 @@ function get_rss_content($sql_ids = '')
 		if ($xml === false)
 		{
 			// TODO: Fix message, key=>val
-			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $url);
+			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $row['url']);
 			// used if suppressed and handle error in this code
 			//		$msg['err'][] = libxml_get_errors();
 			libxml_clear_errors();
@@ -276,33 +284,36 @@ function get_rss_content($sql_ids = '')
 			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author) : '';
 
 			// Now we add the content
-			if ($inc_html)
+			if (!empty($desc))
 			{
-				html2bb($desc);
-			}
+				if ($inc_html)
+				{
+					html2bb($desc);
+				}
 
-			$desc = strip_tags($desc);
+				$desc = strip_tags($desc);
 
-			// Apply custom filters
-			foreach ($text_filter as $filter)
-			{
-				$desc = str_replace($filter[0], $filter[1], $desc);
-			}
+				// Apply custom filters
+				foreach ($text_filter as $filter)
+				{
+					$desc = str_replace($filter[0], $filter[1], $desc);
+				}
 			
-			$desc = rss_filter($desc, $inc_html, true);
+				$desc = rss_filter($desc, $inc_html, true);
 
-			if ($is_cjk && function_exists('cjk_tidy'))
-			{
-				$desc = cjk_tidy($desc);
-				$post_title = cjk_tidy($post_title);
+				if ($is_cjk && function_exists('cjk_tidy'))
+				{
+					$desc = cjk_tidy($desc);
+					$post_title = cjk_tidy($post_title);
+				}
+
+				if ($post_limit)
+				{
+					$desc = truncate_string($desc, $post_limit, 255, FALSE, $user->lang['TRUNCATE']);
+				}
+
+				$message .= "\n" . $desc . "\n";
 			}
-
-			if ($post_limit)
-			{
-				$desc = truncate_string($desc, $post_limit, 255, FALSE, $user->lang['TRUNCATE']);
-			}
-
-			$message .= "\n" . $desc . "\n";
 
 			$link	= ($is_rss) ? fix_url($post->link) : fix_url($post->link['href']);
 
@@ -313,13 +324,14 @@ function get_rss_content($sql_ids = '')
 
 			if (!empty($link))
 			{
-				$message .= "\n" . sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']);
+				$message .= (!empty($desc)) ? "\n" : '';
+				$message .= sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']);
 				$message .= (empty($comments)) ? "\n" : $message .= $user->lang['TAB'];
 			}
 			
 			if (!empty($comments))
 			{
-				$message .= (empty($link)) ? "\n" : '';
+				$message .= (empty($link) && !empty($desc)) ? "\n" : '';
 				$message .= sprintf($user->lang['BB_URL'], $comments, $user->lang['COMMENTS']);
 			}
 /* end bb_message() */
@@ -341,23 +353,34 @@ function get_rss_content($sql_ids = '')
 			$heading = $feed_info = '';
 
 			// should we include the channel info
-			if (!empty($inc_src_info))
+			if ($inc_src_info)
 			{
 				$source_title	= ($is_rss) ? rss_filter($xml->channel->title) : rss_filter($xml->title);
 				$source_desc	= ($is_rss) ? rss_filter($xml->channel->description) : rss_filter($xml->subtitle);
-				$source_link	= ($is_rss) ? fix_url($xml->channel->link) : fix_url($xml->link['href']);
+				$source_link	= ($is_rss) ? fix_url((isset($xml->channel->link) ? $xml->channel->link : $xml->channel->image->link)) : fix_url($xml->link['href']);
 				$source_img_url= ($is_rss) ? fix_url($xml->channel->image->url) : fix_url($xml->logo);
 				$source_cat		= ($is_rss) ? rss_filter($xml->channel->category) : rss_filter($xml->category);
 
-				$heading .= (!empty($source_img_url)) ? sprintf($user->lang['BB_URL'], $source_link, "[img]${source_img_url}[/img]") : sprintf($user->lang['BB_URL'], $source_link, sprintf($user->lang['BB_SOURCE_TITLE'], $source_title));
+				if (!empty($source_link))
+				{
+					$heading .= (!empty($source_img_url)) ? sprintf($user->lang['BB_URL'], $source_link, "[img]${source_img_url}[/img]") : sprintf($user->lang['BB_URL'], $source_link, sprintf($user->lang['BB_SOURCE_TITLE'], $source_title));
+				}
+				else
+				{
+					$heading .= $source_title;
+				}
+
 				$heading .= "\n";
 				
-				if ($source_desc != $source_title)
+				if (!empty($source_desc) && $source_desc != $source_title)
 				{
 					$heading .= sprintf($user->lang['BB_SOURCE_DESC'], $source_desc);
 				}
 				
 				$heading .= (!empty($source_cat)) ? sprintf($user->lang['BB_CAT'], $source_cat) : '';
+
+				// clean up \n
+				$heading = preg_replace("#\n+#", "\n", $heading);
 			}
 
 			// Always show the copyright notice if provided
@@ -367,24 +390,23 @@ function get_rss_content($sql_ids = '')
 			if (!empty($source_rights))
 			{
 				$feed_info .= sprintf($user->lang['BB_COPYRIGHT'], $source_rights);
-				$feed_info .= ($feed_ts == $now) ? $user->lang['HR'] : "\n";
 			}
 			
 			if ($feed_ts != $now)
 			{
-				$feed_info .= sprintf($user->lang['BB_SOURCE_DATE'], $user->format_date($feed_ts)) . $user->lang['HR'];
+				$feed_info .= sprintf($user->lang['BB_SOURCE_DATE'], $user->format_date($feed_ts));
 			}
 
-			if (empty($source_rights) && $feed_ts == $now)
-			{
-				$feed_info .= "\n";
-			}
-
+			// clean up
+			$feed_info = str_replace("\n\n", "\n", $feed_info) . $user->lang['HR'];
+			
+			unset($xml);
+			
 			if (!$latest_ts)
 			{
 				$latest_ts = $now; 
 			}
-			
+
 			// submit each item as new post or reply
 			if (empty($topic_ttl))
 			{

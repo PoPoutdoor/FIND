@@ -41,12 +41,12 @@ if (empty($lang) || !is_array($lang))
 $lang = array_merge($lang, array(
 	'BB_AUTHOR'				=> 'By [color=brown]%s[/color]' . "\n" ,
 	'BB_CAT'					=> '[size=125]Category: [color=darkred]%s[/color][/size]' . "\n",
-	'BB_COPYRIGHT'			=> '[size=85][color=#808000]%s[/color][/size]',
+	'BB_COPYRIGHT'			=> '[size=85][color=#808000]%s[/color][/size]' . "\n",
 	'BB_POST_SRC'			=> 'From: [color=green]%s[/color]' . "\n",
 	'BB_POST_TS'			=> 'Post at: [color=green]%s[/color]' . "\n",
 	'BB_SOURCE_TITLE'		=> '[size=125]%s[/size]',
 	'BB_SOURCE_DESC'		=> '[size=85][color=indigo]%s[/color][/size]' . "\n",
-	'BB_SOURCE_DATE'		=> 'Updated at: [color=green]%s[/color]',
+	'BB_SOURCE_DATE'		=> 'Updated at: [color=green]%s[/color]' . "\n",
 	'BB_TITLE'				=> '[color=darkblue][size=150]%s[/size][/color]' . "\n",
 	'BB_URL'					=> '[url=%s]%s[/url]',
 
@@ -57,7 +57,7 @@ $lang = array_merge($lang, array(
 	'TRUNCATE'	=> '...',	// Truncate string.
 
 // custom message below
-	'IMG_RESTRICT'	=> "\n" . '[size=125][Protected Image][/size]' . "\n",
+	'IMG_RESTRICT'	=> "\n" . '[b][[i]Protected Image[/i]][/b]' . "\n",
 
 ));
 

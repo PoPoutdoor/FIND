@@ -1,4 +1,4 @@
-Version: 1.0.2[RC-6]
+Version: 1.1.0-beta#3
 ======
 This is a phpbb3 mod I wrote sometime ago.
 
@@ -22,6 +22,11 @@ License: GPLv2
 A copy of license included at /rss_input/license.txt
 
 
-
+Notes for development code
+======
+- Document is OUTDATED
+- Upgrade instructions is NOT create yet
+- Limited support for alpha/beta code
+- Post installation: require database operation - alter table phpbb_xmlfeeds drop encodings;
 
 

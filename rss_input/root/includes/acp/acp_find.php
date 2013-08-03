@@ -325,7 +325,7 @@ class acp_find
 					{
 						$error[] = $user->lang['URL_TOO_LONG'];
 					}
-					else if (!preg_match('#^http://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', htmlspecialchars_decode($rss_row['url'])))
+					else if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', htmlspecialchars_decode($rss_row['url'])))
 					{
 						$error[] = $user->lang['URL_NOT_VALID'];
 					}
