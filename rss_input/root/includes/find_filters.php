@@ -113,7 +113,6 @@ function fix_url($url)
 */
 	global $url_filter;
 
-	//$url = trim($url);
 /*
 	if (filter_var($url, FILTER_VALIDATE_URL) === false)
 	{

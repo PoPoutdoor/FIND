@@ -94,7 +94,7 @@ $lang = array_merge($lang, array(
 //	'FEED_RECODE'					=> '強制編碼',
 //	'FEED_RECODE_EXPLAIN'		=> '正常不需設定(留空)！這個設定是解決來源編碼表頭決失或錯誤的問題。',
 	'FEED_URL'				=> '新聞來源地址',
-	'FEED_URL_EXPLAIN'	=> '請先到<a href="http://www.feedvalidator.org/" onclick="window.open(this.href); return false"><em>這裡</em></a>確認來源是否符合相關標準！<br />來源的 URL 地址 (12-255 字符)。',
+	'FEED_URL_EXPLAIN'	=> '請先到<a href="http://validator.w3.org/feed/" onclick="window.open(this.href); return false"><em>這裡</em></a>確認來源是否符合相關標準！<br />來源的 URL 地址 (12-255 字符)。',
 	'FEEDNAME_TOPIC'				=> '來源名稱做主題',
 	'FEEDNAME_TOPIC_EXPLAIN'	=> '如果來源包含主題訊息，發表的主題是自動產生的。如果選擇“是”，就會採用上面設定的‘來源名稱’做發表主題。',
 

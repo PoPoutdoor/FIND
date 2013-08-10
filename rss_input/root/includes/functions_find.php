@@ -25,12 +25,164 @@ if (!defined('IN_PHPBB'))
 function get_rss_content($sql_ids = '')
 {
 /*
-	timestamp issue, seems not rfc822
-	
-	<lastBuildDate>Sun, 04 Aug 2013 04:16:11 +0800</lastBuildDate>
-	<pubDate>Fri, 02 Aug 2013 16:24:00 +0800</pubDate>
+	TODO: item/entry: need sorting. RSS ok now, but no simple method for atom yet
 	
 */
+
+/*	fetch data in namespaces  
+
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xmlns:dcterms="http://purl.org/dc/terms/"
+      xmlns:media="http://search.yahoo.com/mrss/">
+   <id>http://www.bbc.co.uk/zhongwen/trad/index.xml</id>
+   <title xml:lang="zh-Hant">bbcchinese.com | 新聞主頁</title>
+   <updated>2013-08-07T08:06:44+00:00</updated>
+   <link rel="self" href="http://www.bbc.co.uk/zhongwen/trad/index.xml"/>
+   <author>
+      <name>BBC Chinese</name>
+      <email>chinese@bbc.co.uk</email>
+      <uri>http://www.bbcchinese.com</uri>
+   </author>
+   <generator>http://www.bbcchinese.com</generator>
+   <category xml:lang="zh-Hant" term="chinese_traditional" label="chinese_traditional"/>
+   <category xml:lang="zh-Hant" term="homepage" label="新聞主頁"/>
+   <logo>http://www.bbc.co.uk/zhongwen/trad/images/gel/rss_logo.gif</logo>
+   <rights xml:lang="zh-Hant">英國廣播公司 版權所有 2013</rights>
+   <entry>
+      <id>tag:www.bbcchinese.com,2013-08-07:26316278</id>
+      <dc:identifier>26316278</dc:identifier>
+      <updated>2013-08-07T07:17:01+00:00</updated>
+      <published>2013-08-07T07:04:43+00:00</published>
+      <category xml:lang="zh-Hant" term="chinese_traditional" label="chinese_traditional"/>
+      <category xml:lang="zh-Hant" term="chinanews" label="兩岸"/>
+      <rights>restricted</rights>
+      <title xml:lang="zh-Hant">台灣國防部否認軍方内鬥造成防長下台</title>
+      <summary xml:lang="zh-Hant">台灣軍方在一周內換了兩名防長引起輿論眾多揣測議論，國防部則否認這涉及了軍中內部鬥爭。</summary>
+      <dc:subject>台灣, 國防部, 否認, 軍方, 内鬥, 造成, 防長, 下台</dc:subject>
+      <link rel="alternate" type="text/html" title="story"
+            href="http://www.bbc.co.uk/zhongwen/trad/china/2013/08/130807_taiwan_defense_minister.shtml">
+         <xhtml:link xmlns:xhtml="http://www.w3.org/1999/xhtml" rel="alternate" media="handheld"
+                     title="mobile-story"
+                     type="text/html"
+                     href="http://www.bbc.co.uk/zhongwen/trad/mobile/china/2013/08/130807_taiwan_defense_minister.shtml"/>
+         <media:content>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/07/130807064725_yen_ming__144x81__nocredit.jpg"
+                             width="106"
+                             height="60">
+               <img alt="" width="106" height="60"
+                    src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/07/130807064725_yen_ming__144x81__nocredit.jpg"/>
+            </media:thumbnail>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/07/130807064725_yen_ming__144x81__nocredit.jpg"
+                             width="144"
+                             height="81">
+               <img alt="台灣新任防長將由空軍出身的參謀總長嚴明出任（資料照片）" width="144" height="81"
+                    src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/07/130807064725_yen_ming__144x81__nocredit.jpg"/>
+            </media:thumbnail>
+         </media:content>
+      </link>
+      <link rel="related" type="text/html" title="story"
+            href="http://www.bbc.co.uk/zhongwen/trad/china/2013/08/130806_breaking_taiwan_yangresignation.shtml">
+         <xhtml:link xmlns:xhtml="http://www.w3.org/1999/xhtml" rel="related" media="handheld"
+                     title="mobile-story"
+                     type="text/html"
+                     href="http://www.bbc.co.uk/zhongwen/trad/mobile/china/2013/08/130806_breaking_taiwan_yangresignation.shtml"/>
+         <media:content>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806152401_yang_nianzu_144x81_cna_nocredit.jpg"
+                             width="106"
+                             height="60">
+               <img alt="" width="106" height="60"
+                    src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806152401_yang_nianzu_144x81_cna_nocredit.jpg"/>
+            </media:thumbnail>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806152401_yang_nianzu_144x81_cna_nocredit.jpg"
+                             width="144"
+                             height="81">
+               <img alt="楊念祖" width="144" height="81"
+                    src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806152401_yang_nianzu_144x81_cna_nocredit.jpg"/>
+            </media:thumbnail>
+         </media:content>
+      </link>
+      <link rel="related" type="text/html" title="story"
+            href="http://www.bbc.co.uk/zhongwen/trad/china/2013/08/130806_taiwan_military_court_rule.shtml">
+         <xhtml:link xmlns:xhtml="http://www.w3.org/1999/xhtml" rel="related" media="handheld"
+                     title="mobile-story"
+                     type="text/html"
+                     href="http://www.bbc.co.uk/zhongwen/trad/mobile/china/2013/08/130806_taiwan_military_court_rule.shtml"/>
+         <media:content>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806164552_taiwan_144x81_getty_nocredit.jpg"
+                             width="106"
+                             height="60">
+               <img alt="" width="106" height="60"
+                    src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806164552_taiwan_144x81_getty_nocredit.jpg"/>
+            </media:thumbnail>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806164552_taiwan_144x81_getty_nocredit.jpg"
+                             width="144"
+                             height="81">
+               <img alt="台灣民眾抗議" width="144" height="81"
+                    src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806164552_taiwan_144x81_getty_nocredit.jpg"/>
+            </media:thumbnail>
+         </media:content>
+      </link>
+      <link rel="related" type="text/html" title="story"
+            href="http://www.bbc.co.uk/zhongwen/trad/china/2013/08/130806_taiwan_military_law.shtml">
+         <xhtml:link xmlns:xhtml="http://www.w3.org/1999/xhtml" rel="related" media="handheld"
+                     title="mobile-story"
+                     type="text/html"
+                     href="http://www.bbc.co.uk/zhongwen/trad/mobile/china/2013/08/130806_taiwan_military_law.shtml"/>
+         <media:content>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806162358_taiwan_legilative_yuan_144x81_cna_nocredit.jpg"
+                             width="106"
+                             height="60">
+               <img alt="" width="106" height="60"
+                    src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806162358_taiwan_legilative_yuan_144x81_cna_nocredit.jpg"/>
+            </media:thumbnail>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806162358_taiwan_legilative_yuan_144x81_cna_nocredit.jpg"
+                             width="144"
+                             height="81">
+               <img alt="台灣立法院" width="144" height="81"
+                    src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/06/130806162358_taiwan_legilative_yuan_144x81_cna_nocredit.jpg"/>
+            </media:thumbnail>
+         </media:content>
+      </link>
+      <link rel="related" type="text/html" title="story"
+            href="http://www.bbc.co.uk/zhongwen/trad/china/2013/08/130805_tw_amending_military_law.shtml">
+         <xhtml:link xmlns:xhtml="http://www.w3.org/1999/xhtml" rel="related" media="handheld"
+                     title="mobile-story"
+                     type="text/html"
+                     href="http://www.bbc.co.uk/zhongwen/trad/mobile/china/2013/08/130805_tw_amending_military_law.shtml"/>
+         <media:content>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/05/130805121952_tw_chen_144x81_cna_nocredit.jpg"
+                             width="106"
+                             height="60">
+               <img alt="" width="106" height="60"
+                    src="http://wscdn.bbc.co.uk/worldservice/ic/106x60/wscdn.bbc.co.uk/worldservice/assets/images/2013/08/05/130805121952_tw_chen_144x81_cna_nocredit.jpg"/>
+            </media:thumbnail>
+            <media:thumbnail url="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/05/130805121952_tw_chen_144x81_cna_nocredit.jpg"
+                             width="144"
+                             height="81">
+               <img alt="曾任陸軍總司令的陳鎮湘" width="144" height="81"
+                    src="http://wscdn.bbc.co.uk/worldservice/assets/images/2013/08/05/130805121952_tw_chen_144x81_cna_nocredit.jpg"/>
+            </media:thumbnail>
+         </media:content>
+      </link>
+   </entry>
+
+---
+$ns = $xml->getNameSpaces(true);
+	:
+foreach ($feed as $post)
+{
+	$media = $post->link->children($ns["media"]);
+	$media_content = $media->content;
+	$media_attrs = $media_content->thumbnail[1]->attributes();
+	$image = $media_attrs["url"];
+	print $image . "\n";
+}
+
+
+*/
+
 
 	global $db, $user;
 	global $is_cjk, $html_filter, $text_filter, $url_filter;	// This pass local vars to called functions
@@ -112,8 +264,12 @@ function get_rss_content($sql_ids = '')
 
 		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 		{
+			// Set the user agent if remote block access by this.
+			//ini_set("user_agent","Mozilla/5.0 (X11; Linux x86_64; rv:17.0) Gecko/20100101 Firefox/17.0");
+
 			// suppress error
-			libxml_use_internal_errors(true);
+			//libxml_use_internal_errors(true);
+			// FIXME: session cookie is set for Google redirect issue, don't know how to disable cookie
 			$xml = simplexml_load_file($row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 		}
 		// no supporting methods, issue error message
@@ -187,6 +343,9 @@ function get_rss_content($sql_ids = '')
 		$user->lang_name = $row['user_lang'];
 		$user->add_lang('find_posting');
 
+		// Add namespace support
+		//$ns = $xml->getNameSpaces(true);
+
 		// message body vars
 		$processed = $skipped = $latest_ts = 0;
 		if (empty($topic_ttl))
@@ -200,7 +359,49 @@ function get_rss_content($sql_ids = '')
 
 		// handle item/entry
 		$i = 0;
-		$feed = ($is_rss) ? $xml->xpath('//item') : $xml->entry;
+		if ($is_rss)
+		{
+			$feed = $xml->xpath('//item');
+
+			if (isset($feed[0]->pubDate))
+			{
+				usort($feed, function($a, $b)
+				{
+					return strcmp($b->pubDate, $a->pubDate);
+				});
+			}
+			else
+			{
+				// no ts
+			}
+		}
+		else
+		{
+			$feed = array();
+			foreach ($xml->entry as $entry)
+			{
+				$feed[] = $entry;
+			}
+
+			if (isset($feed[0]->updated))
+			{
+				usort($feed, function($a, $b)
+				{
+					return strcmp($b->updated, $a->updated);
+				});
+			}
+			elseif (isset($feed[0]->published))
+			{
+				usort($feed, function($a, $b)
+				{
+					return strcmp($b->published, $a->published);
+				});
+			}
+			else
+			{
+				// no ts
+			}
+		}
 
 		foreach ($feed as $post)
 		{
@@ -218,22 +419,16 @@ function get_rss_content($sql_ids = '')
 				$post_ts = $feed_ts;	// should issue timestamp error and exit this feed processing
 			}
 
+			// skip to next item if outdated
 			if ($post_ts <= $last_update)
 			{
-				// item outdated, skipped
+				$skipped++;
 				continue;
 			}
 
 			if ($latest_ts < $post_ts)
 			{
 				$latest_ts =  $post_ts;
-			}
-
-			// skip to next item if outdated
-			if ($last_update >= $post_ts)
-			{
-				$skipped++;
-				continue;
 			}
 
 			// preprocess item values
@@ -283,6 +478,12 @@ function get_rss_content($sql_ids = '')
 
 			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author) : '';
 
+			if (isset($post->enclosure))
+			{
+				$enc_link = fix_url($post->enclosure['url']);
+				$message .= ($post->enclosure['type'] == 'image/jpeg') ? "\n[img]${enc_link}[/img]\n" : "\n[url]${enc_link}[/url]\n";
+			}
+
 			// Now we add the content
 			if (!empty($desc))
 			{
@@ -317,10 +518,7 @@ function get_rss_content($sql_ids = '')
 
 			$link	= ($is_rss) ? fix_url($post->link) : fix_url($post->link['href']);
 
-			if (isset($post->comments))
-			{
-				$comments = fix_url($post->comments);
-			}
+			$comments = (isset($post->comments)) ? fix_url($post->comments) : '';
 
 			if (!empty($link))
 			{
@@ -350,6 +548,7 @@ function get_rss_content($sql_ids = '')
 			
 		if ($processed)
 		{
+			unset($feed);
 			$heading = $feed_info = '';
 
 			// should we include the channel info

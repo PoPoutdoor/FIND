@@ -95,7 +95,7 @@ $lang = array_merge($lang, array(
 //	'FEED_RECODE'				=> 'Force Encoding',
 //	'FEED_RECODE_EXPLAIN'	=> 'Leave blank unless posted text looks like corrupted!<br />This setting intended to fix incorrect/missing encoding info.',
 	'FEED_URL'				=> 'Feed URL',
-	'FEED_URL_EXPLAIN'	=> 'Validate <a href="http://www.feedvalidator.org/" onclick="window.open(this.href); return false"><em>here</em></a> first!<br />Enter the URL for the news feed (min. 12, max. 255 chars).',
+	'FEED_URL_EXPLAIN'	=> 'Validate <a href="http://validator.w3.org/feed/" onclick="window.open(this.href); return false"><em>here</em></a> first!<br />Enter the URL for the news feed (min. 12, max. 255 chars).',
 	'FEEDNAME_TOPIC'				=> 'Feed Name as Subject',
 	'FEEDNAME_TOPIC_EXPLAIN'	=> 'If supplied, the subject of post is automatic generated from the source channel information. Select "Yes" if you want to use <strong>Feed Name</strong> as the post subject.',
 
