@@ -29,13 +29,14 @@ $html_filter = $text_filter = $url_filter = array();
 /*
 	FIND - Custom filters for rss:description/atom:content
 
-	Text filter use str_replace()
-	URL filter use preg_replace()
-	HTML filter use preg_replace()
+	Custom filters use function preg_replace(), with user defined $search, $replace
+	and the haystack will be one of text/html/url
 	
-	param: $text_filter[] = array($search, $replace);
-			 $html_filter[] = array($search, $replace);
-			 $url_filter[] = array($search, $replace);
+	param: $(text|html|url)_filter[] = array($search, $replace);
+
+	$text_filter works with rss_filter()
+	$url_filter works with fix_url()
+	$html_filter works with html2bb()
 
 	Note: To use html filter, enable ACP feed html setting first!
 */
@@ -53,7 +54,8 @@ $url_filter[] = array('#http://static.doyouhike.net/files/.+?$#is', '');
 // filter inline js img tag from doyouhike.net
 $html_filter[] = array('#<img\s+class="attach"[^>]*(?:src="http://static.doyouhike.net/files/.+?)/>#is', $user->lang['IMG_RESTRICT']);
 
-
+// strip off '[dd:dd]$' - mingpao.com
+$text_filter[] = array('#(.*?)\[\d\d\:\d\d\]$#', '\\1');
 
 
 /* --------------------------------
@@ -71,6 +73,7 @@ $html_filter[] = array('#<img\s+class="attach"[^>]*(?:src="http://static.doyouhi
 */
 function rss_filter($text, $is_html = false, $newline = false)
 {
+	global $text_filter;
 /*
 	if (is_array($text))
 	{
@@ -87,6 +90,12 @@ function rss_filter($text, $is_html = false, $newline = false)
 	else
 	{
 		$text = strip_tags($text);
+
+		// Apply custom filters
+		foreach ($text_filter as $filter)
+		{
+			$text = preg_replace($filter[0], $filter[1], $text);
+		}
 	}
 
 	$text = str_replace("\r", "\n", $text);
@@ -113,6 +122,7 @@ function fix_url($url)
 */
 	global $url_filter;
 
+	// TODO: validate url is prefixed with (ht|f)tp(s)?
 /*
 	if (filter_var($url, FILTER_VALIDATE_URL) === false)
 	{

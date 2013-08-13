@@ -299,7 +299,7 @@ function get_rss_content($sql_ids = '')
 			if ($inc_cat && isset($post->category))
 			{
 				$post_cat = rss_filter($post->category);
-				$message .= (!empty($post_cat)) ? sprintf($user->lang['BB_CAT'], rss_filter($post->category)) : '';
+				$message .= (!empty($post_cat)) ? sprintf($user->lang['BB_CAT'], $post_cat) : '';
 			}
 
 			if (isset($post->source))
@@ -336,12 +336,6 @@ function get_rss_content($sql_ids = '')
 
 				$desc = strip_tags($desc);
 
-				// Apply custom filters
-				foreach ($text_filter as $filter)
-				{
-					$desc = str_replace($filter[0], $filter[1], $desc);
-				}
-			
 				$desc = rss_filter($desc, $inc_html, true);
 
 				if ($is_cjk && function_exists('cjk_tidy'))
