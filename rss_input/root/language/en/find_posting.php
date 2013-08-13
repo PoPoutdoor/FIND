@@ -53,11 +53,12 @@ $lang = array_merge($lang, array(
 	'COMMENTS'	=> '[i]Post your comments[/i]' . "\n",
 	'HR'			=> "\n--------\n",	// Horizontal line.
 	'READ_MORE'	=> '[i]Read more...[/i]',
+	'RELATED'	=> "\n\n[i]Read related...[/i]",
 	'TAB'			=> ' - ',	// Tab.
 	'TRUNCATE'	=> '...',	// Truncate string.
 
 // custom message below
-	'IMG_RESTRICT'	=> "\n" . '[b][[i]Protected Image[/i]][/b]' . "\n",
+	'IMG_RESTRICT'	=> "\n" . '[[i]Protected Image[/i]]' . "\n",
 
 ));
 

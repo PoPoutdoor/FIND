@@ -52,10 +52,11 @@ $lang = array_merge($lang, array(
 	'COMMENTS'	=> '[i]發表意見[/i]' . "\n",
 	'HR'			=> "\n--------\n",	// Horizontal line.
 	'READ_MORE'	=> '[i]閱讀全文[/i]',
+	'RELATED'	=> "\n\n[i]相關文章[/i]",
 	'TAB'			=> ' - ',	// Tab.
 	'TRUNCATE'	=> '﹍',		// Truncate string.
 // custom message below
-	'IMG_RESTRICT'	=> "\n" . '[b][[i]受保護圖象[/i]][/b]' . "\n",
+	'IMG_RESTRICT'	=> "\n" . '[[i]受保護圖象[/i]]' . "\n",
 
 ));
 
