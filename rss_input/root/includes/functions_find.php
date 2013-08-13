@@ -211,6 +211,8 @@ function get_rss_content($sql_ids = '')
 				{
 					return strcmp($b->pubDate, $a->pubDate);
 				});
+
+				$no_post_ts = false;
 			}
 		}
 		else
@@ -227,6 +229,8 @@ function get_rss_content($sql_ids = '')
 				{
 					return strcmp($b->updated, $a->updated);
 				});
+
+				$no_post_ts = false;
 			}
 			elseif (isset($feed[0]->published))
 			{
@@ -234,6 +238,8 @@ function get_rss_content($sql_ids = '')
 				{
 					return strcmp($b->published, $a->published);
 				});
+
+				$no_post_ts = false;
 			}
 		}
 
