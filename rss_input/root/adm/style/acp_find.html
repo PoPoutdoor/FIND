@@ -34,32 +34,22 @@
 	<fieldset>
 		<legend>{L_TITLE}</legend>
 		<dl>
-			<dt><label for="feedname">{L_FEED_NAME}</label><br /><span>{L_FEED_NAME_EXPLAIN}</span></dt>
-			<dd><input name="feedname" type="text" id="feedname" value="{FEED_NAME}" size="40" maxlength="255" /></dd>
-		</dl>
-		<dl>
 			<dt><label for="url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}</span></dt>
 			<dd><input name="url" type="text" id="url" value="{FEED_URL}" size="40" maxlength="255" /></dd>
 		</dl>
+	</fieldset>
+	<!-- IF S_CHECKED -->
+	<fieldset>
+		<legend>{L_ACP_POST_SETTINGS}</legend>
 		<dl>
 			<dt><label for="post_forum">{L_POST_FORUM_BOT}</label><br /><span>{L_POST_FORUM_BOT_EXPLAIN}</span></dt>
 			<dd><select id="post_forum" name="post_forum">{S_FORUM_OPTIONS}</select></dd>
 			<dd><select id="bot_id" name="bot_id">{S_BOT_OPTIONS}</select></dd>
 		</dl>
-<!--		<dl>
-			<dt><label for="encodings">{L_FEED_RECODE}</label><br /><span>{L_FEED_RECODE_EXPLAIN}</span></dt>
-			<dd><input name="encodings" type="text" id="encodings" value="{FEED_RECODE}" maxlength="32" /></dd>
-		</dl>	//-->
-	</fieldset>
-	<fieldset>
-		<legend>{L_TOPIC_MODE}</legend>
 		<dl>
-			<dt><label for="topic_ttl">{L_TOPIC_TTL}</label><br /><span>{L_TOPIC_TTL_EXPLAIN}</span></dt>
-			<dd>{S_TOPIC_TTL}</dd>
+			<dt><label for="feedname">{L_FEED_NAME}</label><br /><span>{L_FEED_NAME_EXPLAIN}</span></dt>
+			<dd><input name="feedname" type="text" id="feedname" value="{FEED_NAME}" size="40" maxlength="255" /></dd>
 		</dl>
-	</fieldset>
-	<fieldset>
-		<legend>{L_ACP_POST_SETTINGS}</legend>
 		<dl>
 			<dt><label for="feedname_topic">{L_FEEDNAME_TOPIC}</label><br /><span>{L_FEEDNAME_TOPIC_EXPLAIN}</span></dt>
 			<dd>{S_FEEDNAME}</dd>
@@ -73,7 +63,7 @@
 			<dd><input name="post_contents" type="text" id="post_contents" value="{POST_LIMITS}" maxlength="255" /></dd>
 		</dl>
 		<dl>
-			<dt><label for="inc_chaNNEL">{L_FEED_INFO}</label><br /><span>{L_FEED_INFO_EXPLAIN}</span></dt>
+			<dt><label for="inc_channel">{L_FEED_INFO}</label><br /><span>{L_FEED_INFO_EXPLAIN}</span></dt>
 			<dd>{S_FEEDINFO}</dd>
 		</dl>
 		<dl>
@@ -86,12 +76,23 @@
 		</dl>
 	</fieldset>
 	<fieldset>
+		<legend>{L_TOPIC_MODE}</legend>
+		<dl>
+			<dt><label for="topic_ttl">{L_TOPIC_TTL}</label><br /><span>{L_TOPIC_TTL_EXPLAIN}</span></dt>
+			<dd>{S_TOPIC_TTL}</dd>
+		</dl>
+	</fieldset>
+	<!-- ENDIF -->
+	<fieldset>
 		<legend>{L_ACP_SUBMIT_CHANGES}</legend>
 <!-- IF S_AUTH -->
 	<!-- BEGIN auth_tpl -->
 		{auth_tpl.TPL}
 	<!-- END auth_tpl -->
 <!-- ENDIF -->
+	<!-- IF ! S_CHECKED -->
+			<input type="hidden" id="feed_check" name="feed_check" value="true" />
+	<!-- ENDIF -->
 		<p class="submit-buttons">
 			<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
 			<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />

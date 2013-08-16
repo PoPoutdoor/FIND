@@ -33,6 +33,8 @@ class acp_find
 		$sql_ids = '';
 
 		$submit	= (isset($_POST['submit'])) ? true : false;
+		$check	= (isset($_POST['feed_check'])) ? true : false;
+
 		$action	= request_var('action', '');
 		$mark		= request_var('mark', array(0));
 		$feed_id	= request_var('id', 0);
@@ -43,7 +45,7 @@ class acp_find
 		$form_key = 'acp_find';
 		add_form_key($form_key);
 
-		if ($submit && !check_form_key($form_key))
+		if (($submit) && !check_form_key($form_key))
 		{
 			$error[] = $user->lang['FORM_INVALID'];
 		}
@@ -51,6 +53,11 @@ class acp_find
 		if (isset($_POST['add']))
 		{
 			$action = 'add';
+			$url_checked = false;
+		}
+		else
+		{
+			$url_checked = true;
 		}
 
 		if ($feed_id)
@@ -178,15 +185,17 @@ class acp_find
 				}
 			break;
 
-			case 'edit':
 			case 'add':
+				$rss_row = array(
+					'url'				=> request_var('url', ''),
+				);
+			case 'edit':
 				// init/normalise form values
 				$rss_row = array(
 					'feedname'		=> utf8_normalize_nfc(request_var('feedname', '', true)),
 					'url'				=> request_var('url', ''),
 					'post_forum'	=> request_var('post_forum', 0),
 					'bot_id'			=> request_var('bot_id', 0),
-				//	'encodings'		=> utf8_normalize_nfc(request_var('encodings', '', true)),
 
 					'topic_ttl'			=> request_var('topic_ttl', 1),
 					'feedname_topic'	=> request_var('feedname_topic', 0),
@@ -216,6 +225,167 @@ class acp_find
 					}
 
 					$select_id = $rss_row['post_forum'];
+				}
+
+				if ($submit)
+				{
+					// validate form
+					if (empty($rss_row['url']))
+					{
+						$error[] = $user->lang['NO_FEED_URL'];
+					}
+					else if (utf8_strlen(htmlspecialchars_decode($rss_row['url'])) < 12)
+					{
+						$error[] = $user->lang['URL_TOO_SHORT'];
+					}
+					else if (utf8_strlen(htmlspecialchars_decode($rss_row['url'])) > 255)
+					{
+						$error[] = $user->lang['URL_TOO_LONG'];
+					}
+					else if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', htmlspecialchars_decode($rss_row['url'])))
+					{
+						$error[] = $user->lang['URL_NOT_VALID'];
+					}
+
+					if ($check && !sizeof($error))
+					{
+						// validate feed
+						$url = 'http://validator.w3.org/feed/check.cgi?url=' . urlencode($rss_row['url']);
+
+						$opts = array('http' =>
+							array(
+								'method'  => 'GET',
+								'header'  => 'User-agent: FeedCheck'
+							)
+						);
+		               
+						$context = stream_context_create($opts);
+
+						$ret = file_get_contents($url, false, $context);
+
+						if (preg_match('/Congratulations!/i', $ret))
+						{
+							if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
+							{
+								@ini_set('user_agent', 'FeedCheck');
+								@ini_set('session.use_cookies', 0);
+
+								libxml_use_internal_errors(true);
+
+								$xml = simplexml_load_file($rss_row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
+							}
+							else
+							{
+								$error[] = $user->lang['NO_PHP_SUPPORT'];
+							}
+
+							if ($xml === false)
+							{
+								$error[] = 'Source use cookie to block access!<br /><br />';
+								libxml_clear_errors();
+							}
+							else
+							{
+								$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
+
+								$source_title	= ($is_rss) ? trim($xml->channel->title) : trim($xml->title);
+								$source_cat		= ($is_rss) ? trim($xml->channel->category) : trim($xml->category);
+
+								if ($is_rss)
+								{
+									$feed = $xml->xpath('//item');
+								}
+								else
+								{
+									$feed = array();
+									foreach ($xml->entry as $entry)
+									{
+										$feed[] = $entry;
+									}
+								}
+
+								$desc = ($is_rss) ? $feed[0]->description : ( (isset($feed[0]->content)) ? $feed[0]->content : $feed[0]->summary );
+								$desc = html_entity_decode($desc, ENT_QUOTES, "UTF-8");
+//var_dump(	$source_title, $source_cat, $desc, 	strlen(strip_tags($desc)));
+								$rss_row['feedname']			= (empty($source_title)) ? 'None' : utf8_normalize_nfc($source_title);
+								$rss_row['feedname_topic'] = (empty($source_title)) ? 1 : 0;
+								$rss_row['post_items']		= (sizeof($feed) < 50) ? 0 : 50;
+								$rss_row['post_contents']	= (strlen(strip_tags($desc) < 3000)) ? 0 : 3000;
+								$rss_row['inc_channel']		= (empty($source_title)) ? 0 : 1;
+								$rss_row['inc_cat']			= (empty($source_cat)) ? 0 : 1;
+								$rss_row['feed_html']		= ($desc == strip_tags($desc)) ? 0 : 1;
+							}
+						}
+						else
+						{
+							$error[] = 'Source fails to validate, click <a href="' . $url . '" onClick="this.target=\'_blank\';">here</a> to view the errors<br /><br />';
+						}
+					}
+
+					if (!$rss_row['post_forum'])
+					{
+						$error[] = $user->lang['NO_FORUM'];
+					}
+
+					if (!$rss_row['bot_id'])
+					{
+						$error[] = $user->lang['NO_USER'];
+					}
+
+					if (empty($rss_row['feedname']))
+					{
+						$error[] = $user->lang['NO_FEEDNAME'];
+					}
+					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) < 3)
+					{
+						$error[] = $user->lang['NAME_TOO_SHORT'];
+					}
+					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) > 255)
+					{
+						$error[] = $user->lang['NAME_TOO_LONG'];
+					}
+
+					if (!sizeof($error))
+					{
+						$sql_ary = array(
+							'post_forum'		=> (int) $rss_row['post_forum'],
+							'bot_id'				=> (int) $rss_row['bot_id'],
+							'feedname'			=> (string) $rss_row['feedname'],
+							'url'					=> (string) $rss_row['url'],
+							'topic_ttl'			=> (int) $rss_row['topic_ttl'],
+							'post_items'		=> (int) $rss_row['post_items'],
+							'post_contents'	=> (int) $rss_row['post_contents'],
+							'feedname_topic'	=> (int) $rss_row['feedname_topic'],
+							'inc_channel'		=> (int) $rss_row['inc_channel'],
+							'inc_cat'			=> (int) $rss_row['inc_cat'],
+							'feed_html'			=> (int) $rss_row['feed_html'],
+						);
+
+						// New feed? Create a new entry
+						if ($action == 'add')
+						{
+							$sql = 'INSERT INTO ' . FIND_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
+							$db->sql_query($sql);
+
+							$log = 'ADDED';
+						}
+						else
+						{
+							$sql = 'UPDATE ' . FIND_TABLE . '
+								SET ' . $db->sql_build_array('UPDATE', $sql_ary) . "
+								WHERE feed_id $sql_ids";
+							$db->sql_query($sql);
+
+							$log = 'UPDATED';
+						}
+
+						$db->sql_transaction('commit');
+
+						$cache->destroy('_find');
+
+						add_log('admin', 'LOG_FEED_' . $log, $rss_row['feedname']);
+						trigger_error( $user->lang['FEED_' . $log] . adm_back_link($this->u_action));
+					}
 				}
 
 				// Build forum options
@@ -287,98 +457,6 @@ class acp_find
 					$s_topic_ttl .= '<input type="radio" class="radio" name="topic_ttl" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '<br />';
 				}
 
-				if ($submit)
-				{
-					// validate form
-					if (!$rss_row['post_forum'])
-					{
-						$error[] = $user->lang['NO_FORUM'];
-					}
-
-					if (!$rss_row['bot_id'])
-					{
-						$error[] = $user->lang['NO_USER'];
-					}
-
-					if (empty($rss_row['feedname']))
-					{
-						$error[] = $user->lang['NO_FEEDNAME'];
-					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) < 3)
-					{
-						$error[] = $user->lang['NAME_TOO_SHORT'];
-					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) > 255)
-					{
-						$error[] = $user->lang['NAME_TOO_LONG'];
-					}
-
-					if (empty($rss_row['url']))
-					{
-						$error[] = $user->lang['NO_FEED_URL'];
-					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['url'])) < 12)
-					{
-						$error[] = $user->lang['URL_TOO_SHORT'];
-					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['url'])) > 255)
-					{
-						$error[] = $user->lang['URL_TOO_LONG'];
-					}
-					else if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', htmlspecialchars_decode($rss_row['url'])))
-					{
-						$error[] = $user->lang['URL_NOT_VALID'];
-					}
-				//	// Does anyone knows the maximum encoding string length?
-				//	if (!empty($rss_row['encodings']) && utf8_strlen(htmlspecialchars_decode($rss_row['encodings'])) > 32)
-				//	{
-				//		$error[] = $user->lang['ENCODE_TOO_LONG'];
-				//	}
-
-					if (!sizeof($error))
-					{
-						$sql_ary = array(
-							'post_forum'		=> (int) $rss_row['post_forum'],
-							'bot_id'				=> (int) $rss_row['bot_id'],
-							'feedname'			=> (string) $rss_row['feedname'],
-							'url'					=> (string) $rss_row['url'],
-						//	'encodings'			=> (string) strtolower($rss_row['encodings']),
-							'topic_ttl'			=> (int) $rss_row['topic_ttl'],
-							'post_items'		=> (int) $rss_row['post_items'],
-							'post_contents'	=> (int) $rss_row['post_contents'],
-							'feedname_topic'	=> (int) $rss_row['feedname_topic'],
-							'inc_channel'		=> (int) $rss_row['inc_channel'],
-							'inc_cat'			=> (int) $rss_row['inc_cat'],
-							'feed_html'			=> (int) $rss_row['feed_html'],
-						);
-
-						// New feed? Create a new entry
-						if ($action == 'add')
-						{
-							$sql = 'INSERT INTO ' . FIND_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
-							$db->sql_query($sql);
-
-							$log = 'ADDED';
-						}
-						else
-						{
-							$sql = 'UPDATE ' . FIND_TABLE . '
-								SET ' . $db->sql_build_array('UPDATE', $sql_ary) . "
-								WHERE feed_id $sql_ids";
-							$db->sql_query($sql);
-
-							$log = 'UPDATED';
-						}
-
-						$db->sql_transaction('commit');
-
-						$cache->destroy('_find');
-
-						add_log('admin', 'LOG_FEED_' . $log, $rss_row['feedname']);
-						trigger_error( $user->lang['FEED_' . $log] . adm_back_link($this->u_action));
-					}
-				}
-
 				$template->assign_vars(array(
 					'L_TITLE'	=> $user->lang[strtoupper($action) . '_FEED'],
 
@@ -389,7 +467,6 @@ class acp_find
 					'FEED_URL'			=> $rss_row['url'],
 					'S_FORUM_OPTIONS'	=> $s_forum_options,
 					'S_BOT_OPTIONS'	=> $s_bot_options,
-				//	'FEED_RECODE'		=> $rss_row['encodings'],
 
 					'S_TOPIC_TTL'	=> $s_topic_ttl,
 					'S_FEEDNAME'	=> $s_['feedname_topic'],
@@ -401,6 +478,7 @@ class acp_find
 					'S_CAT'			=> $s_['inc_cat'],
 					'S_HTML'			=> $s_['feed_html'],
 					'S_EDIT_FEED'	=> true,
+					'S_CHECKED'		=> $url_checked,
 
 					'U_ACTION'	=> $this->u_action . "&amp;id=$feed_id&amp;action=$action",
 					'U_BACK'		=> $this->u_action,

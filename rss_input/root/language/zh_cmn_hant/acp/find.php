@@ -78,6 +78,7 @@ $lang = array_merge($lang, array(
 	'FIND'			=> 'RSS/Atom 新聞引進',
 	'FIND_EXPLAIN'	=> '綜合 RSS/Atom 新聞引進外掛',
 	'NO_ENTRIES'	=> '沒有設定新聞來源，請點擊‘新增來源’來設定一個！',
+	'FEED_CHECK'	=> '驗證',
 
 	// add/edit form
 	'EDIT_FEED'				=> '編輯來源',

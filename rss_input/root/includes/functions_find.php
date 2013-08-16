@@ -105,12 +105,14 @@ function get_rss_content($sql_ids = '')
 		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 		{
 			// Set the user agent if remote block access by this.
-			//ini_set("user_agent","Mozilla/5.0 (X11; Linux x86_64; rv:17.0) Gecko/20100101 Firefox/17.0");
+			//@ini_set('user_agent', 'FIND');
+			@ini_set('session.use_cookies', 0);
 
 			// suppress error
 			//libxml_use_internal_errors(true);
 			// FIXME: session cookie is set for Google redirect issue, don't know how to disable cookie
 			$xml = simplexml_load_file($row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
+//			$xml = simplexml_load_string($file, 'SimpleXMLElement', LIBXML_NOCDATA);
 		}
 		// no supporting methods, issue error message
 		else
@@ -201,6 +203,7 @@ function get_rss_content($sql_ids = '')
 		// handle item/entry
 		$i = 0;
 		$no_post_ts = true;
+
 		if ($is_rss)
 		{
 			$feed = $xml->xpath('//item');

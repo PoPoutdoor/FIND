@@ -59,6 +59,7 @@ $lang = array_merge($lang, array(
 	'TOPIC_ITEM'		=> 'Item',
 	'TOPIC_MONTHLY'	=> 'Monthly',
 	'TOPIC_WEEKLY'		=> 'Weekly',
+	'FEED_CHECK'		=> 'Check',
 
 	// form error
 //	'ENCODE_TOO_LONG'	=> 'Feed encoding string too long. Maximum 32 characters!',

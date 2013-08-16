@@ -74,13 +74,7 @@ $text_filter[] = array('#(.*?)\[\d\d\:\d\d\]$#', '\\1');
 function rss_filter($text, $is_html = false, $newline = false)
 {
 	global $text_filter;
-/*
-	if (is_array($text))
-	{
-		// ATOM: do something here, return null for now!
-		return null;
-	}
-*/
+
 	if ($is_html)
 	{
 		$text = str_replace('&nbsp;', ' ', $text);
@@ -123,12 +117,7 @@ function fix_url($url)
 	global $url_filter;
 
 	// TODO: validate url is prefixed with (ht|f)tp(s)?
-/*
-	if (filter_var($url, FILTER_VALIDATE_URL) === false)
-	{
-		return null;
-	}
-*/
+
 	// apply custom filters
 	foreach ($url_filter as $filter)
 	{
