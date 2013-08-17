@@ -29,12 +29,18 @@
 			<p>{ERROR_MSG}</p>
 		</div>
 	<!-- ENDIF -->
+	<!-- IF S_PROMPT -->
+		<div class="successbox">
+			<h3>{L_PROMPT}</h3>
+			<p>{PROMPT_MSG}</p>
+		</div>
+	<!-- ENDIF -->
 
 	<form id="acp_find" method="post" action="{U_ACTION}">
 	<fieldset>
 		<legend>{L_TITLE}</legend>
 		<dl>
-			<dt><label for="url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}</span></dt>
+			<dt><label for="url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}<!-- IF S_CHECKED -->{L_CHECK_URL_EXPLAIN}<!-- ENDIF --></span></dt>
 			<dd><input name="url" type="text" id="url" value="{FEED_URL}" size="40" maxlength="255" /></dd>
 		</dl>
 	</fieldset>
@@ -132,8 +138,8 @@
 			<td style="width: 5%; text-align: center;">&nbsp;&#35;{feeds.ID}&nbsp;</td>
 			<td style="width: 40%;"><a href="{feeds.URL}" onclick="window.open(this.href); return false">{feeds.NAME}</a></td>
 			<td style="text-align: center;">&nbsp;{feeds.LAST_IMPORT}&nbsp;</td>
-			<td style="text-align: center;">&nbsp;<a href="{feeds.U_ACTIVATE_DEACTIVATE}">{feeds.L_ACTIVATE_DEACTIVATE}</a>&nbsp;</td>
 			<td style="text-align: center;">&nbsp;<a href="{feeds.U_EDIT}">{L_EDIT}</a>&nbsp;</td>
+			<td style="text-align: center;">&nbsp;<a href="{feeds.U_ACTIVATE_DEACTIVATE}">{feeds.L_ACTIVATE_DEACTIVATE}</a>&nbsp;</td>
 			<td style="text-align: center;">&nbsp;<a href="{feeds.U_DELETE}">{L_DELETE}</a>&nbsp;</td>
 			<td style="text-align: center;"><input type="checkbox" class="radio" name="mark[]" value="{feeds.ID}" /></td>
 		</tr>

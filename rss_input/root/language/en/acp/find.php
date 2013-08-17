@@ -62,7 +62,6 @@ $lang = array_merge($lang, array(
 	'FEED_CHECK'		=> 'Check',
 
 	// form error
-//	'ENCODE_TOO_LONG'	=> 'Feed encoding string too long. Maximum 32 characters!',
 	'NAME_TOO_LONG'	=> 'Feed name too long. Maximum 255 characters!',
 	'NAME_TOO_SHORT'	=> 'Feed name too short. Requires 3 or more characters!',
 	'NO_FEEDNAME'		=> 'You have to set the feed name!',
@@ -82,8 +81,9 @@ $lang = array_merge($lang, array(
 	'NO_ENTRIES'	=> 'No feed. Click <em>Add Feed</em> to add one!' ,
 
 	// add/edit form
+	'CHECK_URL_EXPLAIN'	=> '<br />Supplied URL will be submitted to <a href="validator.w3.org">validator.w3.org</a> for compliance check. Note: Accepts validated feed only!',
 	'EDIT_FEED'				=> 'Edit Feed',
-	'EDIT_FEED_EXPLAIN'	=> 'The form below will allow you to customise the importing properties of this xml news feed.',
+	'EDIT_FEED_EXPLAIN'	=> 'Customise import properties of news source.',
 
 	'FEED_CAT'				=> 'Category info',
 	'FEED_CAT_EXPLAIN'	=> 'If supplied, include the feed category information in post.',
@@ -93,12 +93,13 @@ $lang = array_merge($lang, array(
 	'FEED_HTML_EXPLAIN'	=> 'If set to "Yes", embedded HTML will be converted to supported BBCode.',
 	'FEED_NAME'				=> 'Feed Name',
 	'FEED_NAME_EXPLAIN'	=> 'Name of this feed. Used in ACP to identify feeds. Will be used as the fallback subject name of imported news post',
-//	'FEED_RECODE'				=> 'Force Encoding',
-//	'FEED_RECODE_EXPLAIN'	=> 'Leave blank unless posted text looks like corrupted!<br />This setting intended to fix incorrect/missing encoding info.',
 	'FEED_URL'				=> 'Feed URL',
-	'FEED_URL_EXPLAIN'	=> 'Validate <a href="http://validator.w3.org/feed/" onclick="window.open(this.href); return false"><em>here</em></a> first!<br />Enter the URL for the news feed (min. 12, max. 255 chars).',
+	'FEED_URL_EXPLAIN'	=> 'Enter the URL for the news feed (min. 12, max. 255 chars).',
+	'FEED_NOT_VALIDATE'			=> '[Feed validation failed]<br />click <a href="%s" onclick="window.open(this.href); return true;">here</a> to view detected error(s) on valdiation page.<br /><br />',
+	'FEED_VALIDATED'				=> '[Feed validated]',
 	'FEEDNAME_TOPIC'				=> 'Feed Name as Subject',
 	'FEEDNAME_TOPIC_EXPLAIN'	=> 'If supplied, the subject of post is automatic generated from the source channel information. Select "Yes" if you want to use <strong>Feed Name</strong> as the post subject.',
+	'FEEDNAME_NOT_PROVIDED'		=> 'Feed name not provided, please set feed name and enable feed name topic.',
 
 	'POST_FORUM_BOT'				=> 'Post Forum/Bot',
 	'POST_FORUM_BOT_EXPLAIN'	=> 'Select posting forum and posting bot for the imported news.',
@@ -106,6 +107,8 @@ $lang = array_merge($lang, array(
 	'POST_ITEMS_EXPLAIN'			=> 'The number of articles to be posted for this feed. e.g. Set 5 to post the latest 5 articles, 0 to post every article from feed.',
 	'POST_LIMITS'					=> 'Characters to post',
 	'POST_LIMITS_EXPLAIN'		=> 'Limit the number of characters posted for each article. Set 300 to post a few lines, 0 to post full contents provided.',
+	'PROMPT'					=> 'Information:<br /><br />',
+	'SELECT_FORUM_BOT'	=> 'Settings auto dectected, please select posting Forum and bot, review before submit.',
 
 	'TOPIC_MODE'			=> 'Post Mode',
 	'TOPIC_TTL'				=> 'New topic intervals',

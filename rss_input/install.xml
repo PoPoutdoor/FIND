@@ -5,28 +5,22 @@
 <mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.phpbb.com/mods/xml/modx-1.2.6.xsd">	<header>
 		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
 
-		<title lang="en">RSS Input</title>
-		<title lang="zh-TW">RSS 新聞匯集</title>
+		<title lang="en">FIND</title>
+		<title lang="zh-TW">綜合新聞匯集</title>
 
-		<description lang="en">Import RSS news to your forums.</description>
-		<description lang="zh-TW">把 RSS 新聞來源發佈到你的論壇。</description>
+		<description lang="en">Forum Integrated News Delivery - post news from external feed to your forums.</description>
+		<description lang="zh-TW">綜合新聞匯集 - 發佈外部新聞來源訊息到你的論壇。</description>
 
-		<author-notes lang="en">Code based on 2.0.x mod 'FIND'.
+		<author-notes lang="en">This mod require:
 
-This mod require:
-
-  1. php > 5.0
-  2. php setting "allow_url_fopen = on" or cURL library support.
-  3. php setting "safe_mode = on" is NOT supportted!
+  1. php >= 5.3 with at least 128M RAM 
+  2. php setting "allow_url_fopen = on" and SimpleXML support
   
 IMPORTANT: Read contrib/readme.html before install.</author-notes>
-		<author-notes lang="zh-TW">程式碼建基於 2.0.x 'FIND' 外掛。
+		<author-notes lang="zh-TW">這個外掛需要：
 
-這個外掛需要：
-
-  1. php 5.0 以上
-  2. php 設定 "allow_url_fopen = on" 或 支援 cURL 程式庫
-  3. 不支援 php 設定 "safe_mode = on"
+  1. php 5.3 或以上、128M 或以上記憶設定
+  2. php 設定 "allow_url_fopen = on" 及 SimpleXML 支援
 
 重要: 安裝前先閱讀 contrib/readme.html。</author-notes>
 		<github><![CDATA[https://github.com/PoPoutdoor/phpbb3_mods-rss_input]]></github>
@@ -38,7 +32,7 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 			</author>
 		</author-group>
 
-		<mod-version>1.0.3</mod-version>
+		<mod-version>1.1.0</mod-version>
 
 		<installation>
 			<level>easy</level>
@@ -47,6 +41,18 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 		</installation>
 
 		<history>
+			<entry>
+				<date>2013-08-17</date>
+				<rev-version>1.1.0-develop</rev-version>
+				<changelog lang="en">
+					<change>Update install.xml</change>
+					<change>Update database structure</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新安裝檔案</change>
+					<change>更新數據庫結構</change>
+				</changelog>
+			</entry>
 			<entry>
 				<date>2013-07-24</date>
 				<rev-version>1.0.2(RC-6)</rev-version>
@@ -152,7 +158,6 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 	feedname varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL,
 	url varchar(255) character set utf8 collate utf8_bin NOT NULL,
 	last_import int(11) unsigned NOT NULL default '0',
-	encodings varchar(32) character set utf8 collate utf8_bin NOT NULL,
 	topic_ttl tinyint(2) unsigned NOT NULL default '1',
 	post_items tinyint(2) unsigned NOT NULL default '10',
 	post_contents smallint(3) unsigned NOT NULL default '0',
@@ -181,14 +186,14 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 				<find><![CDATA[// Additional constants
 define('VOTE_CONVERTED', 127);
 ]]></find>
-				<action type="after-add"><![CDATA[//	RSS Input
+				<action type="after-add"><![CDATA[//	FIND
 define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
 ]]></action>
 			</edit>
 			<edit>
 				<find><![CDATA[// Additional tables
 ]]></find>
-				<action type="after-add"><![CDATA[//	RSS Input
+				<action type="after-add"><![CDATA[//	FIND
 define('FIND_TABLE',		$table_prefix . 'xmlfeeds');
 ]]></action>
 			</edit>
@@ -198,7 +203,7 @@ define('FIND_TABLE',		$table_prefix . 'xmlfeeds');
 			<edit>
 				<find><![CDATA[	'ACP_FORUM_BASED_PERMISSIONS'	=> 'Forum based permissions',
 ]]></find>
-				<action type="before-add"><![CDATA[	'ACP_FIND'					=> 'RSS Import Settings',
+				<action type="before-add"><![CDATA[	'ACP_FIND'					=> 'FIND settings',
 ]]></action>
 			</edit>
 			<edit>
@@ -223,7 +228,7 @@ define('FIND_TABLE',		$table_prefix . 'xmlfeeds');
 
 	Follow instructions from contrib/setup.txt
 
-3. You can manage your feeds from GENERAL - BOARD CONFIGURATION -> RSS Import Settings by now.
+3. You can manage your feeds from GENERAL - BOARD CONFIGURATION -> FIND settings by now.
 
 
 4. Read instructions from contrib/customize.txt if you like to customize this mod.

@@ -20,9 +20,9 @@ class acp_find_info
 		return array(
 			'filename'	=> 'acp_find',
 			'title'		=> 'ACP_FIND',
-			'version'	=> '1.0.1',
+			'version'	=> '1.1.0',
 			'modes'		=> array(
-			'feed_import' => array('title' => 'ACP_FIND', 'auth' => 'acl_a_board'),
+				'manage' => array('title' => 'ACP_FIND', 'auth' => 'acl_a_board', 'cat' => array('ACP_BOARD_CONFIGURATION')),
 			),
 		);
 	}

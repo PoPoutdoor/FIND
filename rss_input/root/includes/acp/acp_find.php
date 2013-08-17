@@ -29,26 +29,26 @@ class acp_find
 	{
 		global $db, $user, $template, $cache, $phpbb_root_path, $phpEx;
 
-		$error = array();
-		$sql_ids = '';
-
-		$submit	= (isset($_POST['submit'])) ? true : false;
-		$check	= (isset($_POST['feed_check'])) ? true : false;
-
-		$action	= request_var('action', '');
-		$mark		= request_var('mark', array(0));
-		$feed_id	= request_var('id', 0);
-
-		$user->add_lang('acp/find');
 		$this->tpl_name = 'acp_find';
 		$this->page_title = 'ACP_FIND';
 		$form_key = 'acp_find';
 		add_form_key($form_key);
 
+		$error = $prompt = array();
+
+		$submit	= (isset($_POST['submit'])) ? true : false;
+
 		if (($submit) && !check_form_key($form_key))
 		{
 			$error[] = $user->lang['FORM_INVALID'];
 		}
+
+		$user->add_lang('acp/find');
+
+		$mark		= request_var('mark', array(0));
+		$feed_id	= request_var('id', 0);
+		$action	= request_var('action', '');
+		$check	= (isset($_POST['feed_check'])) ? true : false;
 
 		if (isset($_POST['add']))
 		{
@@ -59,6 +59,7 @@ class acp_find
 		{
 			$url_checked = true;
 		}
+		
 
 		if ($feed_id)
 		{
@@ -68,12 +69,15 @@ class acp_find
 		{
 			$sql_ids = ' IN (' . implode(",", $mark) . ')';
 		}
-
-		if ($action && $action != 'add' && empty($sql_ids))
+		else
 		{
-			trigger_error( $user->lang['NO_FEED'] . adm_back_link($this->u_action));
+			if ($action && $action != 'add')
+			{
+				trigger_error( $user->lang['NO_FEED'] . adm_back_link($this->u_action));
+			}
 		}
 
+		// get feedname list for batch action message
 		if ($action == 'activate' || $action == 'deactivate' || $action == 'delete')
 		{
 			// fetch feedname
@@ -93,13 +97,14 @@ class acp_find
 			$feedname_list = implode('<br />', $ary);
 		}
 
-		// User wants to do something, how inconsiderate of them!
+		// action
+		$message = '';
 		switch ($action)
 		{
 			case 'activate':
 			case 'deactivate':
 				$activate = ($action == 'activate') ? 1 : 0;
-				$message = sprintf($user->lang[strtoupper($action) . '_FEED'], $feedname_list);
+				$message .= sprintf($user->lang[strtoupper($action) . '_FEED'], $feedname_list);
 
 				$sql = 'UPDATE ' . FIND_TABLE . "
 					SET status = $activate
@@ -134,7 +139,7 @@ class acp_find
 
 				// process returned message
 				$msg_ary = array('OK', 'SKIP', 'ERR');
-				$message = '';
+
 				foreach ($msg_ary as $not_use => $msg)
 				{
 					$message .= $user->lang['IMPORT_' . $msg];
@@ -170,12 +175,14 @@ class acp_find
 
 					$cache->destroy('_find');
 
+					$message .= sprintf($user->lang[strtoupper($action) . '_FEED'], $feedname_list);
+
 					add_log('admin', 'LOG_FEED_DELETED', $feedname_list);
-					trigger_error( $user->lang['FEED_DELETED'] . adm_back_link($this->u_action));
+					trigger_error( $message . adm_back_link($this->u_action));
 				}
 				else
 				{
-					$message = sprintf($user->lang['DELETE_FEED'], $feedname_list, $user->lang['CONFIRM_OPERATION']);
+					$message .= sprintf($user->lang[strtoupper($action) . '_FEED'], $feedname_list, $user->lang['CONFIRM_OPERATION']);
 					confirm_box(false, $message, build_hidden_fields(array(
 						'mark'	=> $mark,
 						'id'		=> $feed_id,
@@ -186,33 +193,35 @@ class acp_find
 			break;
 
 			case 'add':
-				$rss_row = array(
-					'url'				=> request_var('url', ''),
-				);
 			case 'edit':
-				// init/normalise form values
-				$rss_row = array(
-					'feedname'		=> utf8_normalize_nfc(request_var('feedname', '', true)),
-					'url'				=> request_var('url', ''),
-					'post_forum'	=> request_var('post_forum', 0),
-					'bot_id'			=> request_var('bot_id', 0),
-
-					'topic_ttl'			=> request_var('topic_ttl', 1),
-					'feedname_topic'	=> request_var('feedname_topic', 0),
-
-					'post_items'		=> request_var('post_items', 0),
-					'post_contents'	=> request_var('post_contents', 0),
-					'inc_channel'		=> request_var('inc_channel', 1),
-					'inc_cat'			=> request_var('inc_cat', 1),
-					'feed_html'			=> request_var('feed_html', 1),
-				);
 
 				if ($action == 'add')
 				{
 					$select_id = false;
+					$rss_row = array(
+						'url'				=> request_var('url', ''),
+						'topic_ttl'			=> request_var('topic_ttl', 1),
+					);
 				}
 				else
 				{
+					// init/normalise form values
+					$rss_row = array(
+						'feedname'		=> utf8_normalize_nfc(request_var('feedname', '', true)),
+						'url'				=> request_var('url', ''),
+						'post_forum'	=> request_var('post_forum', 0),
+						'bot_id'			=> request_var('bot_id', 0),
+
+						'topic_ttl'			=> request_var('topic_ttl', 1),
+						'feedname_topic'	=> request_var('feedname_topic', 0),
+
+						'post_items'		=> request_var('post_items', 0),
+						'post_contents'	=> request_var('post_contents', 0),
+						'inc_channel'		=> request_var('inc_channel', 1),
+						'inc_cat'			=> request_var('inc_cat', 1),
+						'feed_html'			=> request_var('feed_html', 1),
+					);
+
 					if (!$submit)
 					{
 						// prepare form values for edit
@@ -229,7 +238,7 @@ class acp_find
 
 				if ($submit)
 				{
-					// validate form
+					// validate url
 					if (empty($rss_row['url']))
 					{
 						$error[] = $user->lang['NO_FEED_URL'];
@@ -265,6 +274,8 @@ class acp_find
 
 						if (preg_match('/Congratulations!/i', $ret))
 						{
+							$prompt[] = $user->lang['FEED_VALIDATED'];
+
 							if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 							{
 								@ini_set('user_agent', 'FeedCheck');
@@ -281,7 +292,7 @@ class acp_find
 
 							if ($xml === false)
 							{
-								$error[] = 'Source use cookie to block access!<br /><br />';
+								$prompt[] = 'BUG: Source use cookie to block access!';
 								libxml_clear_errors();
 							}
 							else
@@ -290,6 +301,11 @@ class acp_find
 
 								$source_title	= ($is_rss) ? trim($xml->channel->title) : trim($xml->title);
 								$source_cat		= ($is_rss) ? trim($xml->channel->category) : trim($xml->category);
+								
+								if (empty($source_title))
+								{
+									$prompt[] = $user->lang['FEEDNAME_NOT_PROVIDED'];
+								}
 
 								if ($is_rss)
 								{
@@ -306,7 +322,7 @@ class acp_find
 
 								$desc = ($is_rss) ? $feed[0]->description : ( (isset($feed[0]->content)) ? $feed[0]->content : $feed[0]->summary );
 								$desc = html_entity_decode($desc, ENT_QUOTES, "UTF-8");
-//var_dump(	$source_title, $source_cat, $desc, 	strlen(strip_tags($desc)));
+
 								$rss_row['feedname']			= (empty($source_title)) ? 'None' : utf8_normalize_nfc($source_title);
 								$rss_row['feedname_topic'] = (empty($source_title)) ? 1 : 0;
 								$rss_row['post_items']		= (sizeof($feed) < 50) ? 0 : 50;
@@ -314,77 +330,82 @@ class acp_find
 								$rss_row['inc_channel']		= (empty($source_title)) ? 0 : 1;
 								$rss_row['inc_cat']			= (empty($source_cat)) ? 0 : 1;
 								$rss_row['feed_html']		= ($desc == strip_tags($desc)) ? 0 : 1;
+
+								$prompt[] = $user->lang['SELECT_FORUM_BOT'];
 							}
+
 						}
 						else
 						{
-							$error[] = 'Source fails to validate, click <a href="' . $url . '" onClick="this.target=\'_blank\';">here</a> to view the errors<br /><br />';
+							$error[] = sprintf($user->lang['FEED_NOT_VALIDATE'], $url);
 						}
 					}
-
-					if (!$rss_row['post_forum'])
+					else
 					{
-						$error[] = $user->lang['NO_FORUM'];
-					}
-
-					if (!$rss_row['bot_id'])
-					{
-						$error[] = $user->lang['NO_USER'];
-					}
-
-					if (empty($rss_row['feedname']))
-					{
-						$error[] = $user->lang['NO_FEEDNAME'];
-					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) < 3)
-					{
-						$error[] = $user->lang['NAME_TOO_SHORT'];
-					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) > 255)
-					{
-						$error[] = $user->lang['NAME_TOO_LONG'];
-					}
-
-					if (!sizeof($error))
-					{
-						$sql_ary = array(
-							'post_forum'		=> (int) $rss_row['post_forum'],
-							'bot_id'				=> (int) $rss_row['bot_id'],
-							'feedname'			=> (string) $rss_row['feedname'],
-							'url'					=> (string) $rss_row['url'],
-							'topic_ttl'			=> (int) $rss_row['topic_ttl'],
-							'post_items'		=> (int) $rss_row['post_items'],
-							'post_contents'	=> (int) $rss_row['post_contents'],
-							'feedname_topic'	=> (int) $rss_row['feedname_topic'],
-							'inc_channel'		=> (int) $rss_row['inc_channel'],
-							'inc_cat'			=> (int) $rss_row['inc_cat'],
-							'feed_html'			=> (int) $rss_row['feed_html'],
-						);
-
-						// New feed? Create a new entry
-						if ($action == 'add')
+						if (!$rss_row['post_forum'])
 						{
-							$sql = 'INSERT INTO ' . FIND_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
-							$db->sql_query($sql);
-
-							$log = 'ADDED';
+							$error[] = $user->lang['NO_FORUM'];
 						}
-						else
+
+						if (!$rss_row['bot_id'])
 						{
-							$sql = 'UPDATE ' . FIND_TABLE . '
-								SET ' . $db->sql_build_array('UPDATE', $sql_ary) . "
-								WHERE feed_id $sql_ids";
-							$db->sql_query($sql);
-
-							$log = 'UPDATED';
+							$error[] = $user->lang['NO_USER'];
 						}
 
-						$db->sql_transaction('commit');
+						if (empty($rss_row['feedname']))
+						{
+							$error[] = $user->lang['NO_FEEDNAME'];
+						}
+						else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) < 3)
+						{
+							$error[] = $user->lang['NAME_TOO_SHORT'];
+						}
+						else if (utf8_strlen(htmlspecialchars_decode($rss_row['feedname'])) > 255)
+						{
+							$error[] = $user->lang['NAME_TOO_LONG'];
+						}
 
-						$cache->destroy('_find');
+						if (!sizeof($error))
+						{
+							$sql_ary = array(
+								'post_forum'		=> (int) $rss_row['post_forum'],
+								'bot_id'				=> (int) $rss_row['bot_id'],
+								'feedname'			=> (string) $rss_row['feedname'],
+								'url'					=> (string) $rss_row['url'],
+								'topic_ttl'			=> (int) $rss_row['topic_ttl'],
+								'post_items'		=> (int) $rss_row['post_items'],
+								'post_contents'	=> (int) $rss_row['post_contents'],
+								'feedname_topic'	=> (int) $rss_row['feedname_topic'],
+								'inc_channel'		=> (int) $rss_row['inc_channel'],
+								'inc_cat'			=> (int) $rss_row['inc_cat'],
+								'feed_html'			=> (int) $rss_row['feed_html'],
+							);
 
-						add_log('admin', 'LOG_FEED_' . $log, $rss_row['feedname']);
-						trigger_error( $user->lang['FEED_' . $log] . adm_back_link($this->u_action));
+							// New feed? Create a new entry
+							if ($action == 'add')
+							{
+								$sql = 'INSERT INTO ' . FIND_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
+								$db->sql_query($sql);
+
+								$log = 'ADDED';
+							}
+							else
+							{
+								$sql = 'UPDATE ' . FIND_TABLE . '
+									SET ' . $db->sql_build_array('UPDATE', $sql_ary) . "
+									WHERE feed_id $sql_ids";
+								$db->sql_query($sql);
+
+								$log = 'UPDATED';
+							}
+
+							$db->sql_transaction('commit');
+
+							$cache->destroy('_find');
+
+							add_log('admin', 'LOG_FEED_' . $log, $rss_row['feedname']);
+							trigger_error( $user->lang['FEED_' . $log] . adm_back_link($this->u_action));
+						}
 					}
 				}
 
@@ -463,6 +484,9 @@ class acp_find
 					'S_ERROR'	=> (sizeof($error)) ? true : false,
 					'ERROR_MSG'	=> (sizeof($error)) ? implode('<br />', $error) : '',
 
+					'S_PROMPT'		=> (sizeof($prompt)) ? true : false,
+					'PROMPT_MSG'	=> (sizeof($prompt)) ? implode('<br />', $prompt) : '',
+
 					'FEED_NAME'			=> $rss_row['feedname'],
 					'FEED_URL'			=> $rss_row['url'],
 					'S_FORUM_OPTIONS'	=> $s_forum_options,
@@ -489,6 +513,7 @@ class acp_find
 			break;
 		}
 
+		// default page: feed list
 		$sql = 'SELECT r.*, f.forum_name, f.forum_parents 
 			FROM ' . FIND_TABLE . ' r, ' . FORUMS_TABLE . ' f 
 			WHERE r.post_forum = f.forum_id
@@ -528,6 +553,7 @@ class acp_find
 			));
 
 		}
+
 		$db->sql_freeresult($result);
 
 		if ($last_fid)
