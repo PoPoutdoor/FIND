@@ -175,7 +175,7 @@ class acp_find
 
 					$cache->destroy('_find');
 
-					$message .= sprintf($user->lang[strtoupper($action) . '_FEED'], $feedname_list);
+					$message .= sprintf($user->lang[strtoupper($action) . '_FEED'], $feedname_list, '');
 
 					add_log('admin', 'LOG_FEED_DELETED', $feedname_list);
 					trigger_error( $message . adm_back_link($this->u_action));
@@ -194,34 +194,29 @@ class acp_find
 
 			case 'add':
 			case 'edit':
+				// init/normalise form values
+				$rss_row = array(
+					'feedname'		=> utf8_normalize_nfc(request_var('feedname', '', true)),
+					'url'				=> request_var('url', ''),
+					'post_forum'	=> request_var('post_forum', 0),
+					'bot_id'			=> request_var('bot_id', 0),
+
+					'topic_ttl'			=> request_var('topic_ttl', 1),
+					'feedname_topic'	=> request_var('feedname_topic', 0),
+
+					'post_items'		=> request_var('post_items', 0),
+					'post_contents'	=> request_var('post_contents', 0),
+					'inc_channel'		=> request_var('inc_channel', 1),
+					'inc_cat'			=> request_var('inc_cat', 1),
+					'feed_html'			=> request_var('feed_html', 1),
+				);
 
 				if ($action == 'add')
 				{
 					$select_id = false;
-					$rss_row = array(
-						'url'				=> request_var('url', ''),
-						'topic_ttl'			=> request_var('topic_ttl', 1),
-					);
 				}
 				else
 				{
-					// init/normalise form values
-					$rss_row = array(
-						'feedname'		=> utf8_normalize_nfc(request_var('feedname', '', true)),
-						'url'				=> request_var('url', ''),
-						'post_forum'	=> request_var('post_forum', 0),
-						'bot_id'			=> request_var('bot_id', 0),
-
-						'topic_ttl'			=> request_var('topic_ttl', 1),
-						'feedname_topic'	=> request_var('feedname_topic', 0),
-
-						'post_items'		=> request_var('post_items', 0),
-						'post_contents'	=> request_var('post_contents', 0),
-						'inc_channel'		=> request_var('inc_channel', 1),
-						'inc_cat'			=> request_var('inc_cat', 1),
-						'feed_html'			=> request_var('feed_html', 1),
-					);
-
 					if (!$submit)
 					{
 						// prepare form values for edit
@@ -274,8 +269,6 @@ class acp_find
 
 						if (preg_match('/Congratulations!/i', $ret))
 						{
-							$prompt[] = $user->lang['FEED_VALIDATED'];
-
 							if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 							{
 								@ini_set('user_agent', 'FeedCheck');
@@ -292,11 +285,13 @@ class acp_find
 
 							if ($xml === false)
 							{
-								$prompt[] = 'BUG: Source use cookie to block access!';
 								libxml_clear_errors();
+								trigger_error( 'BUG: Cookie used, access to source xml blocked!' . adm_back_link($this->u_action));
 							}
 							else
 							{
+								$prompt[] = $user->lang['FEED_VALIDATED'];
+
 								$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
 
 								$source_title	= ($is_rss) ? trim($xml->channel->title) : trim($xml->title);
@@ -325,8 +320,8 @@ class acp_find
 
 								$rss_row['feedname']			= (empty($source_title)) ? 'None' : utf8_normalize_nfc($source_title);
 								$rss_row['feedname_topic'] = (empty($source_title)) ? 1 : 0;
-								$rss_row['post_items']		= (sizeof($feed) < 50) ? 0 : 50;
-								$rss_row['post_contents']	= (strlen(strip_tags($desc) < 3000)) ? 0 : 3000;
+								$rss_row['post_items']		= (sizeof($feed) < 30) ? 0 : 30;
+								$rss_row['post_contents']	= (strlen(strip_tags($desc) < 2000)) ? 0 : 2000;
 								$rss_row['inc_channel']		= (empty($source_title)) ? 0 : 1;
 								$rss_row['inc_cat']			= (empty($source_cat)) ? 0 : 1;
 								$rss_row['feed_html']		= ($desc == strip_tags($desc)) ? 0 : 1;
@@ -548,7 +543,7 @@ class acp_find
 
 				'L_ACTIVATE_DEACTIVATE'	=> $user->lang[$active_lang],
 				'U_ACTIVATE_DEACTIVATE'	=> $this->u_action . "&amp;id={$row['feed_id']}&amp;action=$active_value",
-				'U_DELETE'					=> $this->u_action . "&amp;id={$row['feed_id']}&amp;action=delete",
+				'U_IMPORT'					=> $this->u_action . "&amp;id={$row['feed_id']}&amp;action=import",
 				'U_EDIT'						=> $this->u_action . "&amp;id={$row['feed_id']}&amp;action=edit",
 			));
 
@@ -559,7 +554,7 @@ class acp_find
 		if ($last_fid)
 		{
 			$s_options = '';
-			$_options = array('activate' => 'ACTIVATE', 'deactivate' => 'DEACTIVATE', 'delete' => 'DELETE', 'import' => 'IMPORT');
+			$_options = array('deactivate' => 'DEACTIVATE', 'activate' => 'ACTIVATE', 'import' => 'IMPORT', 'delete' => 'DELETE');
 			foreach ($_options as $value => $lang)
 			{
 				$s_options .= '<option value="' . $value . '">' . $user->lang[$lang] . '</option>';

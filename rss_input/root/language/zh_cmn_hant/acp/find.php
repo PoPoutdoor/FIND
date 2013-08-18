@@ -55,7 +55,7 @@ $lang = array_merge($lang, array(
 	'POST_BOT'			=> '選擇發佈機器人',
 	'POST_FORUM'		=> '選擇發佈版面',
 	'TOPIC_DAILY'		=> '每天',
-	'TOPIC_ITEM'		=> '項目',
+	'TOPIC_ITEM'		=> '文章',
 	'TOPIC_MONTHLY'	=> '每月',
 	'TOPIC_WEEKLY'		=> '每週',
 
@@ -70,19 +70,19 @@ $lang = array_merge($lang, array(
 	'URL_TOO_LONG'		=> '新聞來源地址太長：至多 255 個字符！',
 	'URL_TOO_SHORT'	=> '新聞來源地址太短：至少需要 12 個字符！',
 
-	// main form
+	// feed list
 	'ADD_FEED'		=> '新增來源',
 	'FEED_ID'		=> 'ID',
-	'FEEDNAME'		=> '來源名稱',
-	'FIND'			=> 'RSS/Atom 新聞引進',
-	'FIND_EXPLAIN'	=> '綜合 RSS/Atom 新聞引進外掛',
+	'FIND'			=> 'RSS/Atom 新聞來源',
+	'FIND_EXPLAIN'	=> '把新聞發佈到指定的論壇',
 	'NO_ENTRIES'	=> '沒有設定新聞來源，請點擊‘新增來源’來設定一個！',
 	'FEED_CHECK'	=> '驗證',
+	'LAST_POST'		=> '最後發佈更新',
 
 	// add/edit form
-	'CHECK_URL_EXPLAIN'	=> '<br />輸入的地址將會發送到 <a href="validator.w3.org">validator.w3.org</a> 檢測是否符合規格。注意：只接受通過檢測的地址！',
+	'CHECK_URL_EXPLAIN'	=> '<br />輸入的地址將會發送到 <a href="validator.w3.org">validator.w3.org</a> 檢測是否符合規格。<em>注意</em>：你可以在檢視錯誤頁面之後加入未能通過檢測的地址。如果新聞沒有正常發佈，不要尋求支援！',
 	'EDIT_FEED'				=> '編輯來源',
-	'EDIT_FEED_EXPLAIN'	=> '這個表單用來設定引進特性。',
+	'EDIT_FEED_EXPLAIN'	=> '設定定新聞來源地址及特性。',
 
 	'FEED_CAT'				=> '分類訊息',
 	'FEED_CAT_EXPLAIN'	=> '設定是否在文章顯示分類訊息（如果來源包含）。',
@@ -91,27 +91,27 @@ $lang = array_merge($lang, array(
 	'FEED_HTML'				=> 'HTML 支援',
 	'FEED_HTML_EXPLAIN'	=> '如果啟用，來源包含的 HTML 就會在發表的文章中轉換成支援的 BBCode。',
 	'FEED_NAME'				=> '新聞來源名稱',
-	'FEED_NAME_EXPLAIN'	=> 'ACP 操作顯示的名稱。若引進時來源沒提供主題，文章主題自動使用這個名稱。',
+	'FEED_NAME_EXPLAIN'	=> 'ACP 顯示的新聞來源名稱（若引進時來源沒提供主題，所發佈文章的主題自動使用這個名稱。',
 	'FEED_URL'				=> '新聞來源地址',
-	'FEED_URL_EXPLAIN'	=> '請先到<a href="http://validator.w3.org/feed/" onclick="window.open(this.href); return false"><em>這裡</em></a>確認來源是否符合相關標準！<br />來源的 URL 地址 (12-255 字符)。',
-	'FEED_NOT_VALIDATE'			=> '[新聞來源未能通過檢測]<br />點擊 <a href="%s" onclick="window.open(this.href); return true;">這裡</a> 查看檢測頁上發現的問題。<br /><br />',
-	'FEED_VALIDATED'				=> '[新聞來源通過檢測]',
-	'FEEDNAME_TOPIC'				=> '來源名稱做主題',
-	'FEEDNAME_TOPIC_EXPLAIN'	=> '如果來源包含主題訊息，發表的主題是自動產生的。如果選擇“是”，就會採用上面設定的‘來源名稱’做發表主題。',
+	'FEED_URL_EXPLAIN'	=> '輸入新聞來源地址 (12-255 字符)。',
+	'FEED_NOT_VALIDATE'			=> '[新聞來源未能通過檢測]<br />點擊 <a href="%s" onclick="window.open(this.href); return false;">這裡</a> 查看檢測頁上發現的問題。<br /><br />',
+	'FEED_VALIDATED'				=> '[<strong>新聞來源通過檢測</strong>]',
+	'FEEDNAME_TOPIC'				=> '新聞來源名稱做發佈主題',
+	'FEEDNAME_TOPIC_EXPLAIN'	=> '如果來源包含主題訊息，發表的主題是自動產生的。如果選擇“是”，預設就會採用上面設定的‘新聞來源名稱’做發佈內容的主題。',
 	'FEEDNAME_NOT_PROVIDED'		=> '新聞來源沒有提供名稱，請輸入<b>來源名稱</b>及在<b>來源名稱做主題</b>選擇“是”。',
 
 	'POST_FORUM_BOT'				=> '發佈版面和機器人',
-	'POST_FORUM_BOT_EXPLAIN'	=> '選擇引進內容的發佈版面和發佈機器人。',
+	'POST_FORUM_BOT_EXPLAIN'	=> '選擇這個新聞來源的發佈版面和發佈機器人。',
 	'POST_ITEMS'					=> '文章上限',
-	'POST_ITEMS_EXPLAIN'			=> '設定從來源引進的文章上限。例如：設為 5 只會從來源引進最新的 5 篇文章，設為 0 引進來源的所有文章。',
-	'POST_LIMITS'					=> '發表字數',
-	'POST_LIMITS_EXPLAIN'		=> '設定每篇文章引進的字數上限。設為 300 來顯示幾行，0 是引進所有提供的內容。',
-	'PROMPT'					=> '提示: <br /><br />',
-	'SELECT_FORUM_BOT'	=> '已自動生成發表設定，請選擇發佈版面和機器人，檢示後再發送。',
+	'POST_ITEMS_EXPLAIN'			=> '設定發佈的文章上限。例如：設為 10 只會發佈最新的 10 篇文章，設為 0 代表發佈所有的文章。',
+	'POST_LIMITS'					=> '內容字數',
+	'POST_LIMITS_EXPLAIN'		=> '設定每篇文章的字數上限。設為 300 只會發佈頭幾行的內容，0 是發佈所有提供的內容。',
+	'PROMPT'					=> '訊息<br /><br />',
+	'SELECT_FORUM_BOT'	=> '已自動生成發佈設定。請選擇發佈版面和機器人，檢示後再發送。',
 
 	'TOPIC_MODE'			=> '發佈模式',
 	'TOPIC_TTL'				=> '新主題時限',
-	'TOPIC_TTL_EXPLAIN'	=> '設定發佈新主題的期限。<br /><em>注意：</em>選擇“項目”表示永遠以項目標題作為新主題發表，同時令到下面<strong>名稱做主題</strong>的設置無效！',
+	'TOPIC_TTL_EXPLAIN'	=> '設定發佈新主題的期限。<br /><em>注意：</em>選擇“文章”表示永遠以文章標題作為新主題發表，同時讓設置 <strong>名稱做主題</strong> 無效！',
 ));
 
 ?>

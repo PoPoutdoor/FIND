@@ -105,12 +105,12 @@ function get_rss_content($sql_ids = '')
 		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 		{
 			// Set the user agent if remote block access by this.
-			//@ini_set('user_agent', 'FIND');
+			@ini_set('user_agent', 'FIND Bot');
 			@ini_set('session.use_cookies', 0);
 
 			// suppress error
 			//libxml_use_internal_errors(true);
-			// FIXME: session cookie is set for Google redirect issue, don't know how to disable cookie
+			// FIXME: session cookie is set for Google feed which block access to xml file, don't know how to disable cookie
 			$xml = simplexml_load_file($row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 //			$xml = simplexml_load_string($file, 'SimpleXMLElement', LIBXML_NOCDATA);
 		}

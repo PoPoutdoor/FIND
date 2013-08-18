@@ -8,9 +8,9 @@ Link to phpbb MOD development forum:
 
 Installation
 ======
-Read /rss_input/contrib/readme.html first!
+Read rss_input/contrib/readme.html first!
 
-- Extract archive, open /rss_input/install.xml in browser, proceed as instructed in phpBB3 way.
+- Extract archive, open rss_input/install.xml in browser, proceed as instructed in phpBB3 way.
 - Read 'Post install setup instructions' #1-3 after code and database in place.
 - Continue from 'Post install setup instructions' #4.
 
@@ -19,7 +19,7 @@ When your installation is ready to served, take a look at 'Customize instruction
 
 License: GPLv2
 ======
-A copy of license included at /rss_input/license.txt
+A copy of license included in rss_input/license.txt
 
 
 Notes for development code
@@ -27,6 +27,5 @@ Notes for development code
 - Document is OUTDATED
 - Upgrade instructions is NOT create yet
 - Limited support for alpha/beta code
-- Post installation: require database operation - alter table phpbb_xmlfeeds drop encodings;
 
 
