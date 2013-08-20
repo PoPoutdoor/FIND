@@ -86,9 +86,12 @@ function rss_filter($text, $is_html = false, $newline = false)
 		$text = strip_tags($text);
 
 		// Apply custom filters
-		foreach ($text_filter as $filter)
+		if (!empty($text_filter))
 		{
-			$text = preg_replace($filter[0], $filter[1], $text);
+			foreach ($text_filter as $filter)
+			{
+				$text = preg_replace($filter[0], $filter[1], $text);
+			}
 		}
 	}
 
@@ -107,21 +110,21 @@ function rss_filter($text, $is_html = false, $newline = false)
 */
 function fix_url($url)
 {
-/*
-	if (is_array($url))
-	{
-		// ATOM: do something here, return null for now!
-		return null;
-	}
-*/
 	global $url_filter;
 
 	// TODO: validate url is prefixed with (ht|f)tp(s)?
+	if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $url))
+	{
+		return;
+	}
 
 	// apply custom filters
-	foreach ($url_filter as $filter)
+	if (!empty($url_filter))
 	{
-		$url = preg_replace($filter[0], $filter[1], $url);
+		foreach ($url_filter as $filter)
+		{
+			$url = preg_replace($filter[0], $filter[1], $url);
+		}
 	}
 
 	return trim($url);

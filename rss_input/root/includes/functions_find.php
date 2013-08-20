@@ -727,9 +727,12 @@ function html2bb(&$html)
 	}
 */
 	// apply custom html filters
-	foreach ($html_filter as $filter)
+	if (!empty($html_filter))
 	{
-		$html = preg_replace($filter[0], $filter[1], $html);
+		foreach ($html_filter as $filter)
+		{
+			$html = preg_replace($filter[0], $filter[1], $html);
+		}
 	}
 	
 	// process <img> tags
