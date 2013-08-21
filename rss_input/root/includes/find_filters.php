@@ -111,8 +111,10 @@ function rss_filter($text, $is_html = false, $newline = false)
 function fix_url($url)
 {
 	global $url_filter;
-
-	// TODO: validate url is prefixed with (ht|f)tp(s)?
+	
+	$url = htmlspecialchars_decode($url);
+	
+	// validate url is prefixed with (ht|f)tp(s)?
 	if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $url))
 	{
 		return;
