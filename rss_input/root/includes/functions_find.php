@@ -57,10 +57,10 @@ function get_rss_content($sql_ids = '')
 	// fetch news from selected feeds
 	while ($row = $db->sql_fetchrow($result))
 	{
-		$feedname = $row['feedname'];
+		$feedname = $row['feed_name'];
 
 		// feed not active, skipped to next
-		if (!$row['status'])
+		if (!$row['feed_state'])
 		{
 			$msg['skip'][] = sprintf($user->lang['FEED_NOT_ACTIVE'], $feedname);
 			continue;
@@ -85,14 +85,14 @@ function get_rss_content($sql_ids = '')
 
 		// prepare some vars
 		$feed_id				= (int) $row['feed_id'];
-		$feedname_topic	= (bool) $row['feedname_topic'];
-		$last_update		= (int) $row['last_import'];
-		$item_limit			= (int) $row['post_items'];
-		$post_limit			= (int) $row['post_contents'];
-		$inc_src_info		= (bool) $row['inc_channel'];
-		$inc_cat				= (bool) $row['inc_cat'];
-		$inc_html			= (bool) $row['feed_html'];
-		$topic_ttl			= (int) $row['topic_ttl'];
+		$feedname_topic	= (bool) $row['feed_name_subject'];
+		$last_update		= (int) $row['last_update'];
+		$max_articles			= (int) $row['max_articles'];
+		$max_contents			= (int) $row['max_contents'];
+		$inc_info		= (bool) $row['feed_info'];
+		$inc_cat				= (bool) $row['article_cat'];
+		$inc_html			= (bool) $row['article_html'];
+		$post_mode			= (int) $row['post_mode'];
 		$forum_id			= (int) $row['post_forum'];
 		$forum_name			= $row['forum_name'];
 
@@ -111,7 +111,7 @@ function get_rss_content($sql_ids = '')
 			// suppress error
 			//libxml_use_internal_errors(true);
 			// FIXME: session cookie is set for Google feed which block access to xml file, don't know how to disable cookie
-			$xml = simplexml_load_file($row['url'], 'SimpleXMLElement', LIBXML_NOCDATA);
+			$xml = simplexml_load_file($row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 //			$xml = simplexml_load_string($file, 'SimpleXMLElement', LIBXML_NOCDATA);
 		}
 		// no supporting methods, issue error message
@@ -125,7 +125,7 @@ function get_rss_content($sql_ids = '')
 		if ($xml === false)
 		{
 			// TODO: Fix message, key=>val
-			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $row['url']);
+			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $row['feed_url']);
 			// used if suppressed and handle error in this code
 			//		$msg['err'][] = libxml_get_errors();
 			libxml_clear_errors();
@@ -134,7 +134,7 @@ function get_rss_content($sql_ids = '')
 
 		// check compliance
 		$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
-
+/*
 		$validate = ($is_rss) ? ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) ) : ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) );
 		if (!$validate)
 		{
@@ -142,7 +142,7 @@ function get_rss_content($sql_ids = '')
 			$msg['err'][] = sprintf($user->lang['FEED_NOT_VALID'], $feedname);
 			continue;
 		}
-
+*/
 		// check source timestamp
 		$now = time();
 
@@ -191,7 +191,7 @@ function get_rss_content($sql_ids = '')
 
 		// message body vars
 		$processed = $skipped = $latest_ts = 0;
-		if (empty($topic_ttl))
+		if (empty($post_mode))
 		{
 			$post_ary = array();
 		}
@@ -249,7 +249,7 @@ function get_rss_content($sql_ids = '')
 		foreach ($feed as $post)
 		{
 			// Respect item limit setting
-			if ($item_limit && $i++ === $item_limit)
+			if ($max_articles && $i++ === $max_articles)
 			{
 				break;
 			}
@@ -353,9 +353,9 @@ function get_rss_content($sql_ids = '')
 					$post_title = cjk_tidy($post_title);
 				}
 
-				if ($post_limit)
+				if ($max_contents)
 				{
-					$desc = truncate_string($desc, $post_limit, 255, FALSE, $user->lang['TRUNCATE']);
+					$desc = truncate_string($desc, $max_contents, 255, FALSE, $user->lang['TRUNCATE']);
 				}
 			}
 
@@ -432,8 +432,6 @@ function get_rss_content($sql_ids = '')
 						list($link_url, $thumb_img) = $link;
 						$desc .= (!empty($thumb_img)) ? $user->lang['TAB'] . sprintf($user->lang['BB_URL'], $link_url, '[img]' . $thumb_img . '[/img]') : $user->lang['TAB'] . '[url]' . $link_url . '[/url]';
 					}
-
-				//	$desc .= "\n";
 				}
 
 				list($link_url, $thumb_img) = $link_self;
@@ -451,7 +449,7 @@ function get_rss_content($sql_ids = '')
 			}
 /* end bb_message() */
 			
-			if (empty($topic_ttl))
+			if (empty($post_mode))
 			{
 				$post_ary[] = array($post_title, $message);
 			}
@@ -468,8 +466,8 @@ function get_rss_content($sql_ids = '')
 			unset($feed);
 			$heading = $feed_info = '';
 
-			// should we include the channel info
-			if ($inc_src_info)
+			// should we include feed info
+			if ($inc_info)
 			{
 				$source_title	= ($is_rss) ? rss_filter($xml->channel->title) : rss_filter($xml->title);
 				$source_desc	= ($is_rss) ? rss_filter($xml->channel->description) : rss_filter($xml->subtitle);
@@ -524,7 +522,7 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// submit each item as new post or reply
-			if (empty($topic_ttl))
+			if (empty($post_mode))
 			{
 				foreach ($post_ary as $not_used => $data)
 				{
@@ -575,13 +573,13 @@ function get_rss_content($sql_ids = '')
 				}
 				else
 				{
-					if ($topic_ttl == 1)	// new topic on each day
+					if ($post_mode == 1)	// new topic on each day
 					{
 						$mode = ($user->format_date($latest_ts, 'd', true) == $user->format_date($topic_time, 'd', true)) ? 'reply' : 'post';
 					}
 					else	// new topic on each week/month
 					{
-						$format = ($topic_ttl == 30) ? 'm' : 'W';
+						$format = ($post_mode == 30) ? 'm' : 'W';
 						$mode = ($user->format_date($latest_ts, $format, true) <= $user->format_date($topic_time, $format, true)) ? 'reply' : 'post';
 					}
 				}
@@ -599,7 +597,7 @@ function get_rss_content($sql_ids = '')
 
 			// update feed last visit time
 			$sql = 'UPDATE ' . FIND_TABLE . '
-				SET last_import = ' . $latest_ts . "
+				SET last_update = ' . $latest_ts . "
 				WHERE feed_id = $feed_id";
 			$update_result = $db->sql_query($sql);
 			$db->sql_freeresult($update_result);
@@ -680,10 +678,8 @@ function rss_autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_
 /**
 *	Convert html tags to BBCode, supported tags are: strong,b,u,em,i,ul,ol,li,img,a,p (11)
 */
-function html2bb(&$html)
+function html2bb(&$html, $html_filter = array())
 {
-	global $html_filter;
-
 	// <strong>...</strong>, <b>...</b>, <u>...</u>, <em>...</em>, <i>...</i>, <p>...</p>, <li>...</li>, <ul>...</ul>, </ol>
 	//	to [b]...[/b], [b]...[/b], [u]...[/u], [i]...[/i], [i]...[/i], \n\n...\n\n, [*]...\n, [list]...[/list], [/list]
 	$search = array('<strong>', '</strong>', '<b>', '</b>', '<u>', '</u>', '<em>', '</em>', '<i>', '</i>',

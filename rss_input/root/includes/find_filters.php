@@ -75,11 +75,12 @@ function rss_filter($text, $is_html = false, $newline = false)
 {
 	global $text_filter;
 
+	$text = html_entity_decode($text, ENT_QUOTES, "UTF-8");
+
 	if ($is_html)
 	{
 		$text = str_replace('&nbsp;', ' ', $text);
 		$text = str_replace('&#32', ' ', $text);
-		$text = html_entity_decode($text, ENT_QUOTES, "UTF-8");
 	}
 	else
 	{

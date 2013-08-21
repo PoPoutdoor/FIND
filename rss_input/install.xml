@@ -42,6 +42,16 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 
 		<history>
 			<entry>
+				<date>2013-08-21</date>
+				<rev-version>1.1.0-develop</rev-version>
+				<changelog lang="en">
+					<change>Update database structure</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新數據庫結構</change>
+				</changelog>
+			</entry>
+			<entry>
 				<date>2013-08-17</date>
 				<rev-version>1.1.0-develop</rev-version>
 				<changelog lang="en">
@@ -150,21 +160,24 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 	</header>
 
 	<action-group>
-		<sql dbms="mysql"><![CDATA[CREATE TABLE phpbb_xmlfeeds (
+		<sql dbms="mysql"><![CDATA[CREATE TABLE phpbb_find (
 	feed_id smallint(4) unsigned NOT NULL auto_increment,
+	feed_url varchar(255) character set utf8 collate utf8_bin NOT NULL,
+	feed_state tinyint(1) unsigned NOT NULL default '1',
 	post_forum mediumint(8) unsigned NOT NULL default '0',
 	bot_id mediumint(8) unsigned NOT NULL default '0',
-	status tinyint(1) unsigned NOT NULL default '0',
-	feedname varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL,
-	url varchar(255) character set utf8 collate utf8_bin NOT NULL,
-	last_import int(11) unsigned NOT NULL default '0',
-	topic_ttl tinyint(2) unsigned NOT NULL default '1',
-	post_items tinyint(2) unsigned NOT NULL default '10',
-	post_contents smallint(3) unsigned NOT NULL default '0',
-	feedname_topic tinyint(1) unsigned NOT NULL default '0',
-	inc_channel tinyint(1) unsigned NOT NULL default '1',
-	inc_cat tinyint(1) unsigned NOT NULL default '1',
-	feed_html tinyint(1) unsigned NOT NULL default '1',
+	last_update int(11) unsigned NOT NULL default '0',
+	feed_name varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL,
+	feed_name_subject tinyint(1) unsigned NOT NULL default '0',
+	post_mode tinyint(2) unsigned NOT NULL default '1',
+	max_articles tinyint(2) unsigned NOT NULL default '10',
+	max_contents smallint(3) unsigned NOT NULL default '0',
+	feed_info tinyint(1) unsigned NOT NULL default '1',
+	article_cat tinyint(1) unsigned NOT NULL default '1',
+	article_html tinyint(1) unsigned NOT NULL default '1',
+	filter_text varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL default '',
+	filter_url varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL default '',
+	filter_html varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL default '',
 	PRIMARY KEY (feed_id),
 	KEY post_forum (post_forum)
 );]]></sql>
@@ -194,7 +207,7 @@ define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
 				<find><![CDATA[// Additional tables
 ]]></find>
 				<action type="after-add"><![CDATA[//	FIND
-define('FIND_TABLE',		$table_prefix . 'xmlfeeds');
+define('FIND_TABLE',				$table_prefix . 'find');
 ]]></action>
 			</edit>
 		</open>
