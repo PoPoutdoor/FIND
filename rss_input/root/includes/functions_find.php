@@ -46,13 +46,16 @@ function get_rss_content($sql_ids = '')
 			AND n.forum_id = f.post_forum 
 		ORDER BY f.post_forum ASC";
 	$result = $db->sql_query($sql);
-
+/*
 	// load custom filter variables
 	if (!function_exists('rss_filter'))
 	{
 		global $phpbb_root_path, $phpEx;
 		include($phpbb_root_path . 'includes/find_filters.' . $phpEx);
 	}
+*/
+	// current custom filter keys
+	$filter_keys = array('URL', 'TEXT', 'HTML');
 
 	// fetch news from selected feeds
 	while ($row = $db->sql_fetchrow($result))
@@ -87,14 +90,14 @@ function get_rss_content($sql_ids = '')
 		$feed_id				= (int) $row['feed_id'];
 		$feedname_topic	= (bool) $row['feed_name_subject'];
 		$last_update		= (int) $row['last_update'];
-		$max_articles			= (int) $row['max_articles'];
-		$max_contents			= (int) $row['max_contents'];
-		$inc_info		= (bool) $row['feed_info'];
+		$max_articles		= (int) $row['max_articles'];
+		$max_contents		= (int) $row['max_contents'];
+		$inc_info			= (bool) $row['feed_info'];
 		$inc_cat				= (bool) $row['article_cat'];
 		$inc_html			= (bool) $row['article_html'];
 		$post_mode			= (int) $row['post_mode'];
 		$forum_id			= (int) $row['post_forum'];
-		$forum_name			= $row['forum_name'];
+		$forum_name			= (string) $row['forum_name'];
 
 		$user->ip							= $row['bot_ip'];
 		$user->data['user_id']			= (int) $row['bot_id'];	// also used for update forum tracking
@@ -132,6 +135,26 @@ function get_rss_content($sql_ids = '')
 			continue;
 		}
 
+		// build feed filter
+		$feed_filters = json_decode($row['feed_filters'], true);
+
+		foreach ($filter_keys as $key)
+		{
+			$key = strtolower($key);
+			$vals = $feed_filters[${key}];
+			${$key . '_filter'} = array();
+
+			if (!is_null($vals))
+			{
+				foreach ($vals as $value)
+				{
+					${$key . '_filter'}[] = $value;
+				}
+			}
+		}
+//if ($feed_id == 6) {
+//	var_dump($feed_filters);
+//}
 		// check compliance
 		$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
 /*
@@ -283,7 +306,7 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// preprocess item values
-			$title = rss_filter($post->title);
+			$title = fix_text($post->title);
 			$desc = ($is_rss) ? $post->description : ( (isset($post->content)) ? $post->content : $post->summary );
 
 			if (empty($title) && empty($desc))
@@ -307,24 +330,24 @@ function get_rss_content($sql_ids = '')
 
 			if ($inc_cat && isset($post->category))
 			{
-				$post_cat = rss_filter($post->category);
+				$post_cat = fix_text($post->category);
 				$message .= (!empty($post_cat)) ? sprintf($user->lang['BB_CAT'], $post_cat) : '';
 			}
 
 			if (isset($post->source))
 			{
-				$post_source = rss_filter($post->source);
+				$post_source = fix_text($post->source);
 				$message .= (!empty($post_source)) ? sprintf($user->lang['BB_POST_SRC'], $post_source) : '';
 			}
 
 			if (isset($post->author->name))
 			{
-				$author	= rss_filter($post->author->name);
-				$author	.= (isset($post->author->email)) ? $user->lang['TAB'] . rss_filter($post->author->email) : '';
+				$author	= fix_text($post->author->name);
+				$author	.= (isset($post->author->email)) ? $user->lang['TAB'] . fix_text($post->author->email) : '';
 			}
 			else
 			{
-				$author	= rss_filter($post->author);
+				$author	= fix_text($post->author);
 			}
 
 			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author) : '';
@@ -345,7 +368,7 @@ function get_rss_content($sql_ids = '')
 
 				$desc = strip_tags($desc);
 
-				$desc = rss_filter($desc, $inc_html, true);
+				$desc = fix_text($desc, $inc_html, true);
 
 				if ($is_cjk && function_exists('cjk_tidy'))
 				{
@@ -469,11 +492,11 @@ function get_rss_content($sql_ids = '')
 			// should we include feed info
 			if ($inc_info)
 			{
-				$source_title	= ($is_rss) ? rss_filter($xml->channel->title) : rss_filter($xml->title);
-				$source_desc	= ($is_rss) ? rss_filter($xml->channel->description) : rss_filter($xml->subtitle);
+				$source_title	= ($is_rss) ? fix_text($xml->channel->title) : fix_text($xml->title);
+				$source_desc	= ($is_rss) ? fix_text($xml->channel->description) : fix_text($xml->subtitle);
 				$source_link	= ($is_rss) ? fix_url((isset($xml->channel->link) ? $xml->channel->link : $xml->channel->image->link)) : fix_url($xml->link['href']);
 				$source_img_url= ($is_rss) ? fix_url($xml->channel->image->url) : fix_url($xml->logo);
-				$source_cat		= ($is_rss) ? rss_filter($xml->channel->category) : rss_filter($xml->category);
+				$source_cat		= ($is_rss) ? fix_text($xml->channel->category) : fix_text($xml->category);
 
 				if (!empty($source_link))
 				{
@@ -499,7 +522,7 @@ function get_rss_content($sql_ids = '')
 
 			// Always show the copyright notice if provided
 			$source_rights	= ($is_rss) ? $xml->channel->copyright : $xml->rights;
-			$source_rights	= rss_filter(str_replace("©", "&#169;", $source_rights));
+			$source_rights	= fix_text(str_replace("©", "&#169;", $source_rights));
 
 			if (!empty($source_rights))
 			{
@@ -676,6 +699,77 @@ function rss_autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_
 
 
 /**
+* Convert CR to LF, strip extra LFs and spaces, multiple newlines to 2
+*
+* @param $text
+* @param $is_html (booleans), option to preserve html tags
+* @param $newline (booleans), option to preserve newline character
+* @return string
+*/
+function fix_text($text, $is_html = false, $newline = false)
+{
+	global $text_filter;
+
+	$text = html_entity_decode($text, ENT_QUOTES, "UTF-8");
+
+	if ($is_html)
+	{
+		$text = str_replace('&nbsp;', ' ', $text);
+		$text = str_replace('&#32', ' ', $text);
+	}
+	else
+	{
+		$text = strip_tags($text);
+
+		// Apply custom filters
+		foreach ($text_filter as $filter)
+		{
+			if (!empty($filter[0]))
+			{
+				$text = preg_replace($filter[0], $filter[1], $text);
+			}
+		}
+	}
+
+	$text = str_replace("\r", "\n", $text);
+	$text = preg_replace("/(\p{Zs}|\t)+/u", '\\1', $text);
+	$text = preg_replace("#(^|\n)(?:\p{Zs}|\t)+?#u", '\\1', $text);
+	$text = ($newline) ? preg_replace("/\n{3,}/", "\n\n", $text) : str_replace("\n", '', $text);
+
+	return trim($text);
+}
+
+
+
+/**
+*	URL filter
+*/
+function fix_url($url)
+{
+	global $url_filter;
+	
+	$url = htmlspecialchars_decode($url);
+	
+	// apply custom filters
+	foreach ($url_filter as $filter)
+	{
+		if (!empty($filter[0]))
+		{
+			$url = preg_replace($filter[0], $filter[1], $url);
+		}
+	}
+
+	// validate url is prefixed with (ht|f)tp(s)?
+	if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $url))
+	{
+		return;
+	}
+
+	return trim($url);
+}
+
+
+/**
 *	Convert html tags to BBCode, supported tags are: strong,b,u,em,i,ul,ol,li,img,a,p (11)
 */
 function html2bb(&$html, $html_filter = array())
@@ -723,9 +817,9 @@ function html2bb(&$html, $html_filter = array())
 	}
 */
 	// apply custom html filters
-	if (!empty($html_filter))
+	foreach ($html_filter as $filter)
 	{
-		foreach ($html_filter as $filter)
+		if (!empty($filter))
 		{
 			$html = preg_replace($filter[0], $filter[1], $html);
 		}
@@ -796,6 +890,83 @@ function html2bb(&$html, $html_filter = array())
 	}
 
 	return;
+}
+
+
+/**
+* Fix CJK full-width punct-alpnum spacing
+*
+* utf8 ncr values for CJK full-width symbols:
+*	12288 - 12290, 12298 - 12318
+*	65281 - 65312
+*	65313 - 65338		excludes english capital letters
+*	65339 - 65344
+*	65345 - 65370		excludes english letters
+*	65371 - 65377
+*	65504 - 65510
+*
+*	HK font				37032, 24419, 22487
+*/
+function cjk_tidy($text)
+{
+	// decode first!
+	$text = utf8_decode_ncr($text);
+
+	// Preserve space around [] , for posting with bbcode tags
+	$text = preg_replace('#\] +([[:punct:]])#', ']&#32;\\1', $text);
+	$text = preg_replace('#([[:punct:]]) +\[#', '\\1&#32;[', $text);
+	// encolsed words with spaces
+	$text = preg_replace('#([[:alnum:][:punct:]\-\+]+)#', '&#32;\\1&#32;', $text);
+
+	$text = utf8_encode_ncr($text);
+
+	$text = preg_replace('/(?:(&#[0-9]{5};)(\w+)|(\w+)(&#[0-9]{5};))/', '\\1 \\2', $text);
+	$text = preg_replace('/\]&#32;(&#[0-9]{5};)/', ']\\1', $text);
+	$text = preg_replace('/(&#[0-9]{5};)&#32;\[/', '\\1[', $text);
+	//FIXME:  trim full-width spaces
+	//$text = preg_replace('/^\p{Zs}+/u', '', $text);	// not works
+	//$text = preg_replace('/\p{Zs}+$/u', '', $text);
+
+	// restore space
+	$text = str_replace('&#32;', ' ', $text);
+
+	// process spacings
+	$val = 12287;
+	while ($val <= 12318)
+	{
+		$val++;
+		if ($val > 12290 && $val < 12298)
+		{
+			continue;
+		}
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$val = 65280;
+	while ($val <= 65378)
+	{
+		$val++;
+		if ( ($val > 65312 && $val < 65339) || ($val > 65344 && $val < 65371) )
+		{
+			// skip Full-width letters and part not in range
+			continue;
+		}
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$val = 65503;
+	while ($val <= 65510)
+	{
+		$val++;
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$text = utf8_decode_ncr($text);
+
+	return $text;
 }
 
 

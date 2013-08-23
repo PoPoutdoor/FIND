@@ -175,9 +175,7 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 	feed_info tinyint(1) unsigned NOT NULL default '1',
 	article_cat tinyint(1) unsigned NOT NULL default '1',
 	article_html tinyint(1) unsigned NOT NULL default '1',
-	filter_text varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL default '',
-	filter_url varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL default '',
-	filter_html varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL default '',
+	feed_filters longtext character set utf8 collate utf8_unicode_ci default NULL,
 	PRIMARY KEY (feed_id),
 	KEY post_forum (post_forum)
 );]]></sql>

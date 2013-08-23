@@ -51,10 +51,12 @@ class acp_find
 		$check	= (isset($_POST['feed_check'])) ? true : false;
 
 		$url_checked = true;
+
 		if (isset($_POST['add']))
 		{
 			$action = 'add';
 			$url_checked = false;
+			$prompt[] = $user->lang['CHECK_URL_EXPLAIN'];
 		}
 
 		if ($feed_id)
@@ -189,46 +191,48 @@ class acp_find
 			break;
 
 			case 'add':
+				$select_id = false;
 			case 'edit':
-				// init/normalise form values
-				$rss_row = array(
-					'feed_name'		=> utf8_normalize_nfc(request_var('feed_name', '', true)),
-					'feed_url'				=> request_var('feed_url', ''),
-					'post_forum'	=> request_var('post_forum', 0),
-					'bot_id'			=> request_var('bot_id', 0),
+				// current custom filter keys
+				$filter_keys = array('URL', 'TEXT', 'HTML');
 
-					'post_mode'			=> request_var('post_mode', 1),
-					'feed_name_subject'	=> request_var('feed_name_subject', 0),
-
-					'max_articles'		=> request_var('max_articles', 0),
-					'max_contents'	=> request_var('max_contents', 0),
-					'feed_info'		=> request_var('feed_info', 1),
-					'article_cat'			=> request_var('article_cat', 1),
-					'article_html'			=> request_var('article_html', 1),
-				);
-
-				if ($action == 'add')
-				{
-					$select_id = false;
-				}
-				else
-				{
-					if (!$submit)
-					{
-						// prepare form values for edit
-						$sql = 'SELECT *
-							FROM ' . FIND_TABLE . "
-							WHERE feed_id $sql_ids";
-						$result = $db->sql_query($sql);
-						$rss_row = $db->sql_fetchrow($result);
-						$db->sql_freeresult($result);
-					}
-
-					$select_id = $rss_row['post_forum'];
-				}
+				$feed_filters = array();
 
 				if ($submit)
 				{
+					// generate feed filters
+					foreach ($filter_keys as $key)
+					{
+						$key = strtolower($key);
+						$search_ary = request_var($key . '_search', array(''));
+						$replace_ary = request_var($key . '_replace', array(''));
+						$i = 0;
+						foreach ($search_ary as $search)
+						{
+							$feed_filters[${key}][$i] = array(
+								html_entity_decode($search, ENT_QUOTES, 'UTF-8'),
+								html_entity_decode($replace_ary[$i], ENT_QUOTES, 'UTF-8'),
+							);
+							$i++;
+						}
+					}
+
+					// normalise form values
+					$rss_row = array(
+						'feed_url'		=> request_var('feed_url', ''),
+						'post_forum'	=> request_var('post_forum', 0),
+						'bot_id'			=> request_var('bot_id', 0),
+						'feed_name'		=> utf8_normalize_nfc(request_var('feed_name', '', true)),
+						'feed_name_subject'	=> request_var('feed_name_subject', 0),
+						'post_mode'		=> request_var('post_mode', 1),
+						'max_articles'	=> request_var('max_articles', 0),
+						'max_contents'	=> request_var('max_contents', 0),
+						'feed_info'		=> request_var('feed_info', 1),
+						'article_cat'	=> request_var('article_cat', 1),
+						'article_html'	=> request_var('article_html', 1),
+						'feed_filters'	=> $feed_filters,
+					);
+
 					// validate url
 					if (empty($rss_row['feed_url']))
 					{
@@ -247,9 +251,9 @@ class acp_find
 						$error[] = $user->lang['URL_NOT_VALID'];
 					}
 
+					// validate feed and detect feed properties
 					if ($check && !sizeof($error))
 					{
-						// validate feed
 						$url = 'http://validator.w3.org/feed/check.cgi?url=' . urlencode($rss_row['feed_url']);
 
 						$opts = array('http' =>
@@ -261,9 +265,7 @@ class acp_find
 		               
 						$context = stream_context_create($opts);
 
-						$ret = file_get_contents($url, false, $context);
-
-						if (preg_match('/Congratulations!/i', $ret))
+						if (preg_match('/Congratulations!/i', file_get_contents($url, false, $context)))
 						{
 							if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
 							{
@@ -282,7 +284,7 @@ class acp_find
 							if ($xml === false)
 							{
 								libxml_clear_errors();
-								trigger_error( 'BUG: Cookie used, access to source xml blocked!' . adm_back_link($this->u_action));
+								trigger_error( 'BUG: Most likely cookie used, access to source xml blocked!' . adm_back_link($this->u_action));
 							}
 							else
 							{
@@ -317,8 +319,8 @@ class acp_find
 								$rss_row['feed_name']			= (empty($source_title)) ? 'None' : utf8_normalize_nfc($source_title);
 								$rss_row['feed_name_subject'] = (empty($source_title)) ? 1 : 0;
 								$rss_row['max_articles']		= (sizeof($feed) < 30) ? 0 : 30;
-								$rss_row['max_contents']	= (strlen(strip_tags($desc) < 2000)) ? 0 : 2000;
-								$rss_row['feed_info']		= (empty($source_title)) ? 0 : 1;
+								$rss_row['max_contents']		= (strlen(strip_tags($desc) < 2000)) ? 0 : 2000;
+								$rss_row['feed_info']			= (empty($source_title)) ? 0 : 1;
 								$rss_row['article_cat']			= (empty($source_cat)) ? 0 : 1;
 								$rss_row['article_html']		= ($desc == strip_tags($desc)) ? 0 : 1;
 
@@ -359,17 +361,18 @@ class acp_find
 						if (!sizeof($error))
 						{
 							$sql_ary = array(
-								'post_forum'		=> (int) $rss_row['post_forum'],
-								'bot_id'				=> (int) $rss_row['bot_id'],
-								'feed_name'			=> (string) $rss_row['feed_name'],
-								'feed_url'					=> (string) $rss_row['feed_url'],
-								'post_mode'			=> (int) $rss_row['post_mode'],
-								'max_articles'		=> (int) $rss_row['max_articles'],
-								'max_contents'	=> (int) $rss_row['max_contents'],
+								'feed_url'		=> (string) $rss_row['feed_url'],
+								'post_forum'	=> (int) $rss_row['post_forum'],
+								'bot_id'			=> (int) $rss_row['bot_id'],
+								'feed_name'		=> (string) $rss_row['feed_name'],
 								'feed_name_subject'	=> (int) $rss_row['feed_name_subject'],
+								'post_mode'		=> (int) $rss_row['post_mode'],
+								'max_articles'	=> (int) $rss_row['max_articles'],
+								'max_contents'	=> (int) $rss_row['max_contents'],
 								'feed_info'		=> (int) $rss_row['feed_info'],
-								'article_cat'			=> (int) $rss_row['article_cat'],
-								'article_html'			=> (int) $rss_row['article_html'],
+								'article_cat'	=> (int) $rss_row['article_cat'],
+								'article_html'	=> (int) $rss_row['article_html'],
+								'feed_filters'	=> json_encode($feed_filters),
 							);
 
 							// New feed? Create a new entry
@@ -400,73 +403,122 @@ class acp_find
 					}
 				}
 
-				// Build forum options
-				$sql = 'SELECT forum_id, forum_type
-					FROM ' . FORUMS_TABLE . '
-					ORDER BY left_id';
-				$result = $db->sql_query($sql);
-
-				$ignore_id = array();
-				while ($row = $db->sql_fetchrow($result))
+				if (!$submit || $action == 'add')
 				{
-					if ($row['forum_type'] != FORUM_POST)
+					if ($action == 'edit')
 					{
-						$ignore_id[] = $row['forum_id'];
+						// prepare form values for edit
+						$sql = 'SELECT *
+							FROM ' . FIND_TABLE . "
+							WHERE feed_id $sql_ids";
+						$result = $db->sql_query($sql);
+						$rss_row = $db->sql_fetchrow($result);
+						$db->sql_freeresult($result);
+
+						$select_id = $rss_row['post_forum'];
+						$feed_filters = json_decode($rss_row['feed_filters'], true);
 					}
-				}
-				$db->sql_freeresult($result);
 
-				$forum_list = make_forum_select($select_id, $ignore_id, true, false, false, false, true);
-				$s_forum_options = '<option value="0">--- ' . $user->lang['POST_FORUM'] . ' ---</option>';
-				foreach ($forum_list as $key => $row)
-				{
-					$s_forum_options .= ($row['disabled']) ? '<option disabled="disabled" class="disabled-option">' : '<option value="' . $row['forum_id'] . '"' . (($row['selected']) ? ' selected="selected"' : '') . '>';
-					$s_forum_options .= $row['padding'] . $row['forum_name'] . '</option>';
-				}
+					// Build forum options
+					$sql = 'SELECT forum_id, forum_type
+						FROM ' . FORUMS_TABLE . '
+						ORDER BY left_id';
+					$result = $db->sql_query($sql);
 
-				// Build RSS bot options
-				$sql = 'SELECT user_id, username
-					FROM ' . USERS_TABLE . '
-					WHERE username LIKE "%' . FIND_BOT_ID . '%"';
-				$result = $db->sql_query($sql);
+					$ignore_id = array();
+					while ($row = $db->sql_fetchrow($result))
+					{
+						if ($row['forum_type'] != FORUM_POST)
+						{
+							$ignore_id[] = $row['forum_id'];
+						}
+					}
+					$db->sql_freeresult($result);
 
-				$bot_list = array();
-				while ($row = $db->sql_fetchrow($result))
-				{
-					$bot_list[$row['user_id']] = $row['username'];
-				}
-				$db->sql_freeresult($result);
+					$forum_list = make_forum_select($select_id, $ignore_id, true, false, false, false, true);
+					$s_forum_options = '<option value="0">--- ' . $user->lang['POST_FORUM'] . ' ---</option>';
+					foreach ($forum_list as $key => $row)
+					{
+						$s_forum_options .= ($row['disabled']) ? '<option disabled="disabled" class="disabled-option">' : '<option value="' . $row['forum_id'] . '"' . (($row['selected']) ? ' selected="selected"' : '') . '>';
+						$s_forum_options .= $row['padding'] . $row['forum_name'] . '</option>';
+					}
 
-				$s_bot_options = '<option value="0">--- ' . $user->lang['POST_BOT'] . ' ---</option>';
-				foreach ($bot_list as $id => $name)
-				{
-					$s_bot_options .= '<option value="' . $id . (($id == $rss_row['bot_id']) ? '" selected="selected" >' : '" >') . $name . '</option>';
-				}
+					// Build RSS bot options
+					$sql = 'SELECT user_id, username
+						FROM ' . USERS_TABLE . '
+						WHERE username LIKE "%' . FIND_BOT_ID . '%"';
+					$result = $db->sql_query($sql);
 
-				// Build radios
-				$s_ = array();
-				$toggle_ary = array('feed_name_subject', 'feed_info', 'article_cat', 'article_html');
-				$_options = array('1' => 'YES', '0' => 'NO');
-				foreach ($toggle_ary as $not_use => $form_key)
-				{
-					$s_options = '';
+					$bot_list = array();
+					while ($row = $db->sql_fetchrow($result))
+					{
+						$bot_list[$row['user_id']] = $row['username'];
+					}
+					$db->sql_freeresult($result);
+
+					$s_bot_options = '<option value="0">--- ' . $user->lang['POST_BOT'] . ' ---</option>';
+					foreach ($bot_list as $id => $name)
+					{
+						$s_bot_options .= '<option value="' . $id . (($id == $rss_row['bot_id']) ? '" selected="selected" >' : '" >') . $name . '</option>';
+					}
+
+					// Build radios
+					$s_ = array();
+					$toggle_ary = array('feed_name_subject', 'feed_info', 'article_cat', 'article_html');
+					$_options = array('1' => 'YES', '0' => 'NO');
+					foreach ($toggle_ary as $not_use => $form_key)
+					{
+						$s_options = '';
+						foreach ($_options as $value => $lang)
+						{
+							$selected = ($rss_row[$form_key] == $value) ? ' checked="checked" id="' . $form_key . '"' : '';
+							$s_options .= '<input type="radio" class="radio" name="' . $form_key . '" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '&nbsp;&nbsp;';
+						}
+
+						$s_[$form_key] = $s_options;
+					}
+
+					// Build post new topic radios
+					$_options = array('1' => 'TOPIC_DAILY', '7' => 'TOPIC_WEEKLY', '30' => 'TOPIC_MONTHLY', '0' => 'TOPIC_ARTICLE');
+					$s_post_mode = '';
 					foreach ($_options as $value => $lang)
 					{
-						$selected = ($rss_row[$form_key] == $value) ? ' checked="checked" id="' . $form_key . '"' : '';
-						$s_options .= '<input type="radio" class="radio" name="' . $form_key . '" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '&nbsp;&nbsp;';
+						$selected = ($rss_row['post_mode'] == $value) ? ' checked="checked" id="post_mode"' : '';
+						$s_post_mode .= ($value) ? '' : '------------<br />';
+						$s_post_mode .= '<input type="radio" class="radio" name="post_mode" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '<br />';
 					}
 
-					$s_[$form_key] = $s_options;
-				}
+					// Build feed filters
+					foreach ($filter_keys as $key)
+					{
+						$template->assign_block_vars('filters', array(
+							'TYPE'			=> $user->lang[$key . '_FILTER'],
+							'TYPE_EXPLAIN'	=> $user->lang[$key . '_FILTER_EXPLAIN'],
+							'KEY'				=> strtolower($key),
+						));
 
-				// Build post new topic radios
-				$_options = array('1' => 'TOPIC_DAILY', '7' => 'TOPIC_WEEKLY', '30' => 'TOPIC_MONTHLY', '0' => 'TOPIC_ARTICLE');
-				$s_post_mode = '';
-				foreach ($_options as $value => $lang)
-				{
-					$selected = ($rss_row['post_mode'] == $value) ? ' checked="checked" id="post_mode"' : '';
-					$s_post_mode .= ($value) ? '' : '------------<br />';
-					$s_post_mode .= '<input type="radio" class="radio" name="post_mode" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '<br />';
+						$key = strtolower($key);
+						$vals = $feed_filters[${key}];
+
+						if (is_null($vals))
+						{
+							$template->assign_block_vars('filters.entries', array(
+								'KEY_S'	=> '',
+								'KEY_R'	=> '',
+							));
+						}
+						else
+						{
+							foreach ($vals as $value)
+							{
+								list($search, $replace) = $value;
+								$template->assign_block_vars('filters.entries', array(
+									'KEY_S'	=> htmlentities($search, ENT_QUOTES, "UTF-8"),
+									'KEY_R'	=> htmlentities($replace, ENT_QUOTES, "UTF-8"),
+								));
+							}
+						}
+					}
 				}
 
 				$template->assign_vars(array(
@@ -535,7 +587,7 @@ class acp_find
 				'ID'				=> $row['feed_id'],
 				'NAME'			=> $row['feed_name'],
 				'URL'				=> $row['feed_url'],
-				'LAST_IMPORT'	=> ($row['last_update']) ? $user->format_date($row['last_update']) : $user->lang['NEVER'],
+				'LAST_UPDATE'	=> ($row['last_update']) ? $user->format_date($row['last_update']) : $user->lang['NEVER'],
 
 				'L_ACTIVATE_DEACTIVATE'	=> $user->lang[$active_lang],
 				'U_ACTIVATE_DEACTIVATE'	=> $this->u_action . "&amp;id={$row['feed_id']}&amp;action=$active_value",

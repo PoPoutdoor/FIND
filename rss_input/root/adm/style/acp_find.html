@@ -40,7 +40,7 @@
 	<fieldset>
 		<legend>{L_TITLE}</legend>
 		<dl>
-			<dt><label for="feed_url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}<!-- IF ! S_CHECKED -->{L_CHECK_URL_EXPLAIN}<!-- ENDIF --></span></dt>
+			<dt><label for="feed_url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}</span></dt>
 			<dd><input name="feed_url" type="text" id="feed_url" value="{FEED_URL}" size="40" maxlength="255" /></dd>
 		</dl>
 	</fieldset>
@@ -87,6 +87,21 @@
 			<dt><label for="post_mode">{L_POST_MODE}</label><br /><span>{L_POST_MODE_EXPLAIN}</span></dt>
 			<dd>{S_POST_MODE}</dd>
 		</dl>
+	</fieldset>
+	<fieldset>
+		<legend>{L_FILTER}</legend>
+		<dl><span>{L_FILTER_EXPLAIN}</span></dl>
+		<!-- BEGIN filters -->
+		<dl>
+			<dt><label for="{filters.KEY}_filter">{filters.TYPE}</label><br /><span>{filters.TYPE_EXPLAIN}</span></dt>
+			<!-- BEGIN entries -->
+			<dd>
+				<input name="{filters.KEY}_search[]" type="text" id="{filters.KEY}_search[]" value="{filters.entries.KEY_S}" size="40" maxlength="255" /><br />
+				<input name="{filters.KEY}_replace[]" type="text" id="{filters.KEY}_replace[]" value="{filters.entries.KEY_R}" size="40" maxlength="255" />
+			</dd>
+			<!-- END entries -->
+		</dl>
+		<!-- END filters -->
 	</fieldset>
 	<!-- ENDIF -->
 	<fieldset>
@@ -138,7 +153,7 @@
 			<td style="text-align: center;">&#35;{feeds.ID}</td>
 			<td><a href="{feeds.URL}" onclick="window.open(this.href); return false">{feeds.NAME}</a></td>
 			<td style="text-align: center;" nowrap="nowrap"><a href="{feeds.U_EDIT}">{L_EDIT}</a></td>
-			<td style="text-align: center;">{feeds.LAST_IMPORT}</td>
+			<td style="text-align: center;">{feeds.LAST_UPDATE}</td>
 			<td style="text-align: center;"><a href="{feeds.U_ACTIVATE_DEACTIVATE}">{feeds.L_ACTIVATE_DEACTIVATE}</a></td>
 			<td style="text-align: center;"><a href="{feeds.U_IMPORT}">{L_IMPORT}</a></td>
 			<td style="text-align: center;"><input type="checkbox" class="radio" name="mark[]" value="{feeds.ID}" /></td>
