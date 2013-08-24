@@ -136,7 +136,8 @@ function get_rss_content($sql_ids = '')
 		}
 
 		// build feed filter
-		$feed_filters = json_decode($row['feed_filters'], true);
+	//	$feed_filters = json_decode($row['feed_filters'], true);
+		$feed_filters = unserialize($row['feed_filters']);
 
 		foreach ($filter_keys as $key)
 		{

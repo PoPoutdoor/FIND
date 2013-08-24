@@ -204,8 +204,9 @@ class acp_find
 					foreach ($filter_keys as $key)
 					{
 						$key = strtolower($key);
-						$search_ary = request_var($key . '_search', array(''));
-						$replace_ary = request_var($key . '_replace', array(''));
+						$search_ary = utf8_normalize_nfc(request_var($key . '_search', array(''), true));
+						$replace_ary = utf8_normalize_nfc(request_var($key . '_replace', array(''), true));
+
 						$i = 0;
 						foreach ($search_ary as $search)
 						{
@@ -372,7 +373,8 @@ class acp_find
 								'feed_info'		=> (int) $rss_row['feed_info'],
 								'article_cat'	=> (int) $rss_row['article_cat'],
 								'article_html'	=> (int) $rss_row['article_html'],
-								'feed_filters'	=> json_encode($feed_filters),
+								'feed_filters'	=> serialize($feed_filters),
+							//	'feed_filters'	=> json_encode($feed_filters, JSON_UNESCAPED_UNICODE),	// >=php5.4
 							);
 
 							// New feed? Create a new entry
@@ -416,7 +418,8 @@ class acp_find
 						$db->sql_freeresult($result);
 
 						$select_id = $rss_row['post_forum'];
-						$feed_filters = json_decode($rss_row['feed_filters'], true);
+					//	$feed_filters = json_decode($rss_row['feed_filters'], true);
+						$feed_filters = unserialize($rss_row['feed_filters']);
 					}
 
 					// Build forum options
