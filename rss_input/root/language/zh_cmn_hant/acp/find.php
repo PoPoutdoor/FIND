@@ -48,6 +48,7 @@ $lang = array_merge($lang, array(
 	'IMPORT_OK'			=> '引進成功：',
 	'IMPORT_SKIP'		=> "\n" . '沒有更新： ',
 	'NO_FEED'			=> '您必須選擇至少一個來源。',
+	'NO_PHP_SUPPORT'	=> '網站 php 沒有安裝這個外掛需要使用的 <strong>SimpleXML</strong> 程式庫 或 沒有啟用 <strong>allow_url_fopen</strong>！。',
 	'NONE'				=> "沒有。\n",
 
 	// form messages
@@ -84,7 +85,7 @@ $lang = array_merge($lang, array(
 	'ARTICLE_CAT_EXPLAIN'	=> '設定是否在文章顯示分類訊息（如果來源包含）。',
 	'ARTICLE_HTML'				=> 'HTML 支援',
 	'ARTICLE_HTML_EXPLAIN'	=> '如果啟用，來源包含的 HTML 就會在發表的文章中轉換成支援的 BBCode。',
-	'CHECK_URL_EXPLAIN'	=> '輸入的地址將會發送到 <a href="validator.w3.org">validator.w3.org</a> 檢測是否符合規格。<br /><br /><em>注意</em>：你可以在檢視錯誤頁面之後加入未能通過檢測的地址。<br /><br />如果新聞沒有正常發佈，不要尋求支援！',
+	'CHECK_URL_EXPLAIN'	=> '輸入的地址將會發送到 <a href="http://validator.w3.org/feed" onclick="window.open(this.href); return false;">validator.w3.org</a> 檢測是否符合規格。<br /><br /><em>注意</em>：你可以在檢視錯誤頁面之後加入未能通過檢測的地址。<br /><br />如果新聞沒有正常發佈，不要尋求支援！',
 	'EDIT_FEED'				=> '編輯來源',
 	'EDIT_FEED_EXPLAIN'	=> '設定定新聞來源地址及特性。',
 	'FEED_INFO'				=> '來源訊息',
@@ -93,7 +94,7 @@ $lang = array_merge($lang, array(
 	'FEED_NAME_EXPLAIN'	=> 'ACP 顯示的新聞來源名稱（若引進時來源沒提供主題，所發佈文章的主題自動使用這個名稱。',
 	'FEED_NAME_SUBJECT'				=> '新聞來源名稱做發佈主題',
 	'FEED_NAME_SUBJECT_EXPLAIN'	=> '如果來源包含主題訊息，發表的主題是自動產生的。如果選擇“是”，預設就會採用上面設定的‘新聞來源名稱’做發佈內容的主題。',
-	'FEED_NOT_VALIDATE'	=> '[<strong>新聞來源未能通過檢測</strong>]<br />點擊 <a href="%s" onclick="window.open(this.href); return false;">這裡</a> 查看檢測頁上發現的問題。<br /><br />',
+	'FEED_NOT_VALIDATE'	=> '[<strong>新聞來源未能通過檢測</strong>]<br />參閱：<a href="http://cyber.law.harvard.edu/rss/rss.html" onclick="window.open(this.href); return false;">RSS 2.0 標準</a>, <a href="http://www.ietf.org/rfc/rfc4287.txt" onclick="window.open(this.href); return false;">Atom 1.0 標準</a><br />點擊 <a href="%s" onclick="window.open(this.href); return false;">這裡</a> 查看檢測頁上發現的問題。<br /><br />',
 	'FEED_URL'				=> '新聞來源地址',
 	'FEED_URL_EXPLAIN'	=> '輸入新聞來源地址 (12-255 字符)。',
 	'FEED_VALIDATED'			=> '[<strong>新聞來源通過檢測</strong>]',
@@ -117,6 +118,9 @@ $lang = array_merge($lang, array(
 	'TEXT_FILTER_EXPLAIN'	=> '過濾所有文字類型資料。<br /><em>注意：</em>請優先使用 phpBB 自帶的<strong>字詞過濾</strong>功能！',
 	'URL_FILTER'			=> '網址過濾',
 	'URL_FILTER_EXPLAIN'	=> '過濾所有網址類型資料。<br /><em>注意：</em>或許需要啟用 HTML 支援。',
+	// acp add/edit
+	'RESPONSE_HEADER'	=> '<br />HTTP 回應表頭:<br />',
+	'XML_BLOCKED'		=> '無法讀取來源 XML！<br />很可能是設置了 cookie 並用來拒絕調用真正的 XML!<br />',
 ));
 
 ?>

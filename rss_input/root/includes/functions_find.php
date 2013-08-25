@@ -25,9 +25,15 @@ if (!defined('IN_PHPBB'))
 function get_rss_content($sql_ids = '')
 {
 	global $db, $user;
-	global $is_cjk, $html_filter, $text_filter, $url_filter;	// This pass local vars to called functions
+	// This pass local vars to called functions
+	global $is_cjk, $html_filter, $text_filter, $url_filter;
 
 	$user->add_lang('find');
+
+	if (!function_exists('simplexml_load_file') || !ini_get('allow_url_fopen'))
+	{
+		trigger_error($user->lang['NO_PHP_SUPPORT']);
+	}
 
 	if (empty($sql_ids))
 	{
@@ -46,14 +52,7 @@ function get_rss_content($sql_ids = '')
 			AND n.forum_id = f.post_forum 
 		ORDER BY f.post_forum ASC";
 	$result = $db->sql_query($sql);
-/*
-	// load custom filter variables
-	if (!function_exists('rss_filter'))
-	{
-		global $phpbb_root_path, $phpEx;
-		include($phpbb_root_path . 'includes/find_filters.' . $phpEx);
-	}
-*/
+
 	// current custom filter keys
 	$filter_keys = array('URL', 'TEXT', 'HTML');
 
@@ -88,6 +87,7 @@ function get_rss_content($sql_ids = '')
 
 		// prepare some vars
 		$feed_id				= (int) $row['feed_id'];
+		$feed_url			= (string) htmlspecialchars_decode($row['feed_url']);
 		$feedname_topic	= (bool) $row['feed_name_subject'];
 		$last_update		= (int) $row['last_update'];
 		$max_articles		= (int) $row['max_articles'];
@@ -105,33 +105,37 @@ function get_rss_content($sql_ids = '')
 		$user->data['user_colour']		= $row['user_colour'];
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
 
-		if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
-		{
-			// Set the user agent if remote block access by this.
-			@ini_set('user_agent', 'FIND Bot');
-			@ini_set('session.use_cookies', 0);
+		// FIXME: session cookie is set for blocking access to real xml file, don't know how to disable cookie
+		// try fixing server-side issues
+		$opts = array('http' =>
+			array(
+				'method'  => 'GET',
+				'header'  => "User-agent: FIND - feed parser;\n" .
+								 "Accept: text/xml;\n"
+			)
+		);
 
-			// suppress error
-			//libxml_use_internal_errors(true);
-			// FIXME: session cookie is set for Google feed which block access to xml file, don't know how to disable cookie
-			$xml = simplexml_load_file($row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
-//			$xml = simplexml_load_string($file, 'SimpleXMLElement', LIBXML_NOCDATA);
-		}
-		// no supporting methods, issue error message
-		else
-		{
-			$msg['err'][] = $user->lang['NO_PHP_SUPPORT'];
-			continue;
-		}
+		$context = stream_context_create($opts);
+		libxml_set_streams_context($context);
+
+		// suppress error
+		//libxml_use_internal_errors(true);
+		$xml = @simplexml_load_file("compress.zlib://" . $row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
+		// used if suppressed and handle error in this code
+		//		$msg['err'][] = libxml_get_errors();
+		//libxml_clear_errors();
 
 		// null page? file not loaded, source issue
 		if ($xml === false)
 		{
-			// TODO: Fix message, key=>val
 			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $row['feed_url']);
-			// used if suppressed and handle error in this code
-			//		$msg['err'][] = libxml_get_errors();
-			libxml_clear_errors();
+			$msg['err'][] = $user->lang['RESPONSE_HEADER'];
+
+			foreach($http_response_header as $line)
+			{
+				$msg['err'][] = $line;
+			}
+
 			continue;
 		}
 
@@ -153,20 +157,10 @@ function get_rss_content($sql_ids = '')
 				}
 			}
 		}
-//if ($feed_id == 6) {
-//	var_dump($feed_filters);
-//}
+
 		// check compliance
 		$is_rss = ( isset($xml->channel) ) ? TRUE : FALSE;
-/*
-		$validate = ($is_rss) ? ( !is_null($xml->channel->title) && !is_null($xml->channel->description) && !is_null($xml->channel->link) ) : ( !is_null($xml->id) && !is_null($xml->title) && !is_null($xml->updated) );
-		if (!$validate)
-		{
-			// Not validate, issue error
-			$msg['err'][] = sprintf($user->lang['FEED_NOT_VALID'], $feedname);
-			continue;
-		}
-*/
+
 		// check source timestamp
 		$now = time();
 

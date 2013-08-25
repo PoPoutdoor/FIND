@@ -49,6 +49,7 @@ $lang = array_merge($lang, array(
 	'IMPORT_SKIP'		=> "\n" . 'Feed without updates: ',
 	'IMPORT_ERR'		=> "\n" . 'Feed with error: ',
 	'NO_FEED'			=> 'You have to select at least one feed!',
+	'NO_PHP_SUPPORT'	=> 'Installed PHP does not have <strong>SimpleXML</strong> support or <strong>allow_url_fopen</strong> activated!<br />This Mod needs both to work.',
 	'NONE'				=> "None.\n",
 
 	// form messages
@@ -85,7 +86,7 @@ $lang = array_merge($lang, array(
 	'ARTICLE_CAT_EXPLAIN'	=> 'If supplied, include the feed category information in post.',
 	'ARTICLE_HTML'				=> 'HTML support',
 	'ARTICLE_HTML_EXPLAIN'	=> 'If set to "Yes", embedded HTML will be converted to supported BBCode.',
-	'CHECK_URL_EXPLAIN'		=> 'Supplied URL will be submitted to <a href="validator.w3.org">validator.w3.org</a> for compliance check.<br /><br /><em>Note</em>: You may add not validated feed after viewing the error page. <br /><br />Do not ask for support if not import properly!',
+	'CHECK_URL_EXPLAIN'		=> 'Supplied URL will be submitted to <a href="http://validator.w3.org/feed" onclick="window.open(this.href); return false;">validator.w3.org</a> for compliance check.<br /><br /><em>Note</em>: You may add not validated feed after viewing the error page. <br /><br />Do not ask for support if not import properly!',
 	'EDIT_FEED'				=> 'Edit Feed',
 	'EDIT_FEED_EXPLAIN'	=> 'Set news feed and post properties.',
 	'FEED_INFO'				=> 'Feed info',
@@ -94,7 +95,7 @@ $lang = array_merge($lang, array(
 	'FEED_NAME_EXPLAIN'	=> 'Name of this feed source(used to identify feeds on ACP, also used as the fallback subject to post)',
 	'FEED_NAME_SUBJECT'				=> 'Feed Name as Subject',
 	'FEED_NAME_SUBJECT_EXPLAIN'	=> 'If supplied, the subject of post is automatic generated from the source data. Select "Yes" if you want to use <strong>Feed Name</strong> set above as default post subject.',
-	'FEED_NOT_VALIDATE'	=> '[<strong>Feed validation failed</strong>]<br />click <a href="%s" onclick="window.open(this.href); return false;">here</a> to view detected error(s) on valdiation page.<br /><br />',
+	'FEED_NOT_VALIDATE'	=> '[<strong>Feed validation failed</strong>]<br />FYI: <a href="http://cyber.law.harvard.edu/rss/rss.html" onclick="window.open(this.href); return false;">RSS 2.0 Specification</a>, <a href="http://www.ietf.org/rfc/rfc4287.txt" onclick="window.open(this.href); return false;">Atom 1.0 Specification</a><br />click <a href="%s" onclick="window.open(this.href); return false;">here</a> to view detected error(s) on valdiation page.<br /><br />',
 	'FEED_URL'				=> 'Feed URL',
 	'FEED_URL_EXPLAIN'	=> 'Enter URL of feed source(min. 12, max. 255 chars).',
 	'FEED_VALIDATED'		=> '[<strong>Feed validated</strong>]',
@@ -118,6 +119,9 @@ $lang = array_merge($lang, array(
 	'TEXT_FILTER_EXPLAIN'	=> 'Filter all text data type.<br /><em>Note:</em> Please try phpBB\'s <strong>Word censoring</strong> feature first!',
 	'URL_FILTER'			=> 'URL filter',
 	'URL_FILTER_EXPLAIN'	=> 'Filter all URLs data type.<br /><em>Note:</em> May need to enable HTML support.',
+	// acp add/edit
+	'RESPONSE_HEADER'	=> '<br />HTTP response header:<br />',
+	'XML_BLOCKED'		=> 'Failed to load source XML!<br />Most likely cookie set and used to blocked the real XML!<br />',
 ));
 
 ?>

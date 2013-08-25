@@ -45,6 +45,11 @@ class acp_find
 
 		$user->add_lang('acp/find');
 
+		if (!function_exists('simplexml_load_file') || !ini_get('allow_url_fopen'))
+		{
+			trigger_error($user->lang['NO_PHP_SUPPORT']);
+		}
+
 		$mark		= request_var('mark', array(0));
 		$feed_id	= request_var('id', 0);
 		$action	= request_var('action', '');
@@ -220,10 +225,10 @@ class acp_find
 
 					// normalise form values
 					$rss_row = array(
-						'feed_url'		=> request_var('feed_url', ''),
+						'feed_url'		=> htmlspecialchars_decode(request_var('feed_url', '')),
 						'post_forum'	=> request_var('post_forum', 0),
 						'bot_id'			=> request_var('bot_id', 0),
-						'feed_name'		=> utf8_normalize_nfc(request_var('feed_name', '', true)),
+						'feed_name'		=> utf8_normalize_nfc(htmlspecialchars_decode(request_var('feed_name', '', true))),
 						'feed_name_subject'	=> request_var('feed_name_subject', 0),
 						'post_mode'		=> request_var('post_mode', 1),
 						'max_articles'	=> request_var('max_articles', 0),
@@ -239,15 +244,15 @@ class acp_find
 					{
 						$error[] = $user->lang['NO_FEED_URL'];
 					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feed_url'])) < 12)
+					else if (utf8_strlen($rss_row['feed_url']) < 12)
 					{
 						$error[] = $user->lang['URL_TOO_SHORT'];
 					}
-					else if (utf8_strlen(htmlspecialchars_decode($rss_row['feed_url'])) > 255)
+					else if (utf8_strlen($rss_row['feed_url']) > 255)
 					{
 						$error[] = $user->lang['URL_TOO_LONG'];
 					}
-					else if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', htmlspecialchars_decode($rss_row['feed_url'])))
+					else if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $rss_row['feed_url']))
 					{
 						$error[] = $user->lang['URL_NOT_VALID'];
 					}
@@ -260,32 +265,30 @@ class acp_find
 						$opts = array('http' =>
 							array(
 								'method'  => 'GET',
-								'header'  => 'User-agent: FeedCheck'
+								'header'  => "User-agent: FIND - feed parser;\n" .
+												 "Accept: text/xml;\n"
 							)
 						);
-		               
+
 						$context = stream_context_create($opts);
 
 						if (preg_match('/Congratulations!/i', file_get_contents($url, false, $context)))
 						{
-							if (function_exists('simplexml_load_file') && ini_get('allow_url_fopen'))
-							{
-								@ini_set('user_agent', 'FeedCheck');
-								@ini_set('session.use_cookies', 0);
+							libxml_set_streams_context($context);
+							libxml_use_internal_errors(true);
 
-								libxml_use_internal_errors(true);
+							$xml = simplexml_load_file("compress.zlib://" . $rss_row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 
-								$xml = simplexml_load_file($rss_row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
-							}
-							else
-							{
-								$error[] = $user->lang['NO_PHP_SUPPORT'];
-							}
+							libxml_clear_errors();
 
 							if ($xml === false)
 							{
-								libxml_clear_errors();
-								trigger_error( 'BUG: Most likely cookie used, access to source xml blocked!' . adm_back_link($this->u_action));
+								$error[] = $user->lang['FEED_VALIDATED'];
+								$error[] = $user->lang['XML_BLOCKED'] . $user->lang['RESPONSE_HEADER'];
+								foreach($http_response_header as $line)
+								{
+									$error[] = $line;
+								}
 							}
 							else
 							{
@@ -327,7 +330,6 @@ class acp_find
 
 								$prompt[] = $user->lang['SELECT_FORUM_BOT'];
 							}
-
 						}
 						else
 						{
@@ -350,11 +352,11 @@ class acp_find
 						{
 							$error[] = $user->lang['NO_FEEDNAME'];
 						}
-						else if (utf8_strlen(htmlspecialchars_decode($rss_row['feed_name'])) < 3)
+						else if (utf8_strlen($rss_row['feed_name']) < 3)
 						{
 							$error[] = $user->lang['NAME_TOO_SHORT'];
 						}
-						else if (utf8_strlen(htmlspecialchars_decode($rss_row['feed_name'])) > 255)
+						else if (utf8_strlen($rss_row['feed_name']) > 255)
 						{
 							$error[] = $user->lang['NAME_TOO_LONG'];
 						}
