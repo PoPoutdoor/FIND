@@ -4,10 +4,10 @@
 *
 * @author PoPoutdoor
 *
-* @package RSS_input
+* @package FIND
 * @version $Id:$
-* @copyright (c) 2008-2011 PoPoutdoor
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @copyright (c) 2008-2013 PoPoutdoor
+* @license http://opensource.org/licenses/GPL-2.0
 *
 */
 //-->
@@ -41,7 +41,14 @@
 		<legend>{L_TITLE}</legend>
 		<dl>
 			<dt><label for="feed_url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}</span></dt>
-			<dd><input name="feed_url" type="text" id="feed_url" value="{FEED_URL}" size="40" maxlength="255" /></dd>
+			<dd>
+				<input name="feed_url" type="text" id="feed_url" value="{FEED_URL}" size="40" maxlength="255" />
+	<!-- IF S_CHECKED -->
+				&nbsp;<input type="checkbox" class="radio" id="feed_check" name="feed_check" value="{S_CHECK}" />&nbsp;<span class="small">{L_FEED_RECHECK}</span>
+	<!-- ELSE -->
+				<input type="hidden" id="feed_check" name="feed_check" value="1" />
+	<!-- ENDIF -->
+			</dd>
 		</dl>
 	</fieldset>
 	<!-- IF S_CHECKED -->
@@ -102,6 +109,12 @@
 			<!-- END entries -->
 		</dl>
 		<!-- END filters -->
+		<dl>
+			<dt><label for="src_filter">{L_SRC_FILTER}</label><br /><span>{L_SRC_FILTER_EXPLAIN}</span></dt>
+			<dd>
+				<input name="src_filter" type="text" id="src_filter" value="{SKIP_SRC}" size="40" maxlength="255" />
+			</dd>
+		</dl>
 	</fieldset>
 	<!-- ENDIF -->
 	<fieldset>
@@ -111,9 +124,6 @@
 		{auth_tpl.TPL}
 	<!-- END auth_tpl -->
 <!-- ENDIF -->
-	<!-- IF ! S_CHECKED -->
-			<input type="hidden" id="feed_check" name="feed_check" value="true" />
-	<!-- ENDIF -->
 		<p class="submit-buttons">
 			<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
 			<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />

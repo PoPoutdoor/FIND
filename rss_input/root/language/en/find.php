@@ -3,10 +3,10 @@
 *
 * @author PoPoutdoor
 *
-* @package RSS_input
+* @package FIND
 * @version $Id:$
 * @copyright (c) 2008-2013 PoPoutdoor
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @license http://opensource.org/licenses/GPL-2.0
 *
 * @language English [en]
 * @translator (c) ( PoPoutdoor )
@@ -40,28 +40,28 @@ if (empty($lang) || !is_array($lang))
 
 $lang = array_merge($lang, array(
 	'BOT_NOT_ACTIVE'	=> 'Bot [%s] is not activated!',
-	'FEED_FETCH_ERR'	=> '[%s] Failed to fetch data from %s',
+	'FEED_FETCH_ERR'	=> "\t[%s] Failed to fetch data from\n\t%s",
 	'FEED_NOT_ACTIVE'	=> 'Feed [%s] is not activated!',
-//	'FEED_NOT_VALID'	=> '[%s] is not compliance to standards, please check xml source!<br />FYI: <a href="http://cyber.law.harvard.edu/rss/rss.html" />RSS 2.0 Specification</a>, <a href="http://www.ietf.org/rfc/rfc4287.txt" />Atom 1.0 Specification</a>',
 	'FEED_TS_INVALID'	=> '[%s] The last updated timestamp is not valid!',
 	'NO_IDS'				=> 'No feed id passed!',
 	'NO_PHP_SUPPORT'	=> 'Installed PHP does not have <strong>SimpleXML</strong> support or <strong>allow_url_fopen</strong> activated!<br />This Mod needs both to work.',
 	'NO_POST_INFO'		=> '[%s] News does not provide title and content!',
 	
-	// acp add/edit
-	'RESPONSE_HEADER'	=> '<br />HTTP response header:<br />',
+	// acp add/edit/import error message
+	'RESPONSE_HEADER'	=> "\nHTTP response header:\n\n",
+	'XML_ERROR'			=> "\nXML parser error:\n\n\t",
+	'LINE_COLUMN'		=> "\n\tLine: %s\n\tColumn: %s\n",
 
 	// acp import results
 	'FEED_NO_UPDATES'	=> '[%s] processed without updates.',
 	'FEED_OK'		=> '[%s] processed with %d new item(s).',
 	'FEED_SKIP'		=> '[%s] processed with %d old item(s)',
 
-	# rss_import.php messages - text only
+	# feed_import.php messages - text only
 	'HACK_ATTEMPT'	=> 'Suspected hack attempts detected.' . "\n",
-	'IMPORT_ERR'	=> "\n" . 'Feed(s) with error: ',
+	'IMPORT_ERR'	=> "\nFeed(s) with error:",
 	'NO_PARAMETER'	=> 'No parameter provided. Input is: [%s]' . "\n",
-	'PARM_ERR'		=> 'Parameter must be numeric string. Input is: [%s]' . "\n" . 'Examples: %s?feed=[1,2,...,999 | 999]' . "\n",
-
+	'PARM_ERR'		=> 'Parameter must be numeric string.' . "\n" . 'Input is: [%s]' . "\n" . 'Examples: %s?feed=[1,2,...,999 | 999]' . "\n",
 ));
 
 ?>

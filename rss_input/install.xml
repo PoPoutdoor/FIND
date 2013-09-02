@@ -183,13 +183,12 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 		<copy>
 			<file from="root/adm/style/acp_find.html" to="adm/style/acp_find.html" />
 			<file from="root/includes/functions_find.php" to="includes/functions_find.php" />
-			<file from="root/includes/rss_parser.php" to="includes/rss_parser.php" />
 			<file from="root/includes/acp/acp_find.php" to="includes/acp/acp_find.php" />
 			<file from="root/includes/acp/info/acp_find.php" to="includes/acp/info/acp_find.php" />
 			<file from="root/language/en/find.php" to="language/en/find.php" />
 			<file from="root/language/en/find_posting.php" to="language/en/find_posting.php" />
 			<file from="root/language/en/acp/find.php" to="language/en/acp/find.php" />
-			<file from="root/rss_import.php" to="rss_import.php" />
+			<file from="root/feed_import.php" to="feed_import.php" />
 		</copy>
 
 		<open src="includes/constants.php">
@@ -198,7 +197,7 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 define('VOTE_CONVERTED', 127);
 ]]></find>
 				<action type="after-add"><![CDATA[//	FIND
-define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
+define('FIND_BOT_ID', '[FIND Bot]');	// string to identify our posting bot
 ]]></action>
 			</edit>
 			<edit>
@@ -231,7 +230,7 @@ define('FIND_TABLE',				$table_prefix . 'find');
 		<diy-instructions lang="en">1. Install the ACP module
 
      a. Login ACP
-     b. Go to: SYSTEM - MODULE MANAGEMENT -> acp -> general -> Board configuration page, select "RSS Import Settings [acp_find]" and click Add module.
+     b. Go to: SYSTEM - MODULE MANAGEMENT -> acp -> general -> Board configuration page, select "FIND Settings [acp_find]" and click Add module.
      c. Enable the module after the page refreshed.
      d. Purge the cache.
 

@@ -3,10 +3,10 @@
 *
 * @author PoPoutdoor
 *
-* @package RSS_input
+* @package FIND
 * @version $Id:$
 * @copyright (c) 2008-2013 PoPoutdoor
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @license http://opensource.org/licenses/GPL-2.0
 *
 * @language English [en]
 * @translator (c) ( PoPoutdoor )
@@ -60,7 +60,7 @@ $lang = array_merge($lang, array(
 	'TOPIC_ARTICLE'	=> 'Article',
 	'TOPIC_MONTHLY'	=> 'Monthly',
 	'TOPIC_WEEKLY'		=> 'Weekly',
-	'FEED_CHECK'		=> 'Check',
+//	'FEED_CHECK'		=> 'Check',
 
 	// form error
 	'NAME_TOO_LONG'	=> 'Feed name too long. Maximum 255 characters!',
@@ -79,7 +79,7 @@ $lang = array_merge($lang, array(
 	'FIND'			=> 'RSS/Atom news feed',
 	'FIND_EXPLAIN'	=> 'Delivers RSS/Atom news to selected forum.',
 	'NO_ENTRIES'	=> 'No feed. Click <em>Add Feed</em> to add one!' ,
-	'LAST_UPDATE'	=> 'Last update post',
+	'LAST_UPDATE'	=> 'Last update',
 
 	// add/edit form
 	'ARTICLE_CAT'				=> 'Category',
@@ -96,6 +96,7 @@ $lang = array_merge($lang, array(
 	'FEED_NAME_SUBJECT'				=> 'Feed Name as Subject',
 	'FEED_NAME_SUBJECT_EXPLAIN'	=> 'If supplied, the subject of post is automatic generated from the source data. Select "Yes" if you want to use <strong>Feed Name</strong> set above as default post subject.',
 	'FEED_NOT_VALIDATE'	=> '[<strong>Feed validation failed</strong>]<br />FYI: <a href="http://cyber.law.harvard.edu/rss/rss.html" onclick="window.open(this.href); return false;">RSS 2.0 Specification</a>, <a href="http://www.ietf.org/rfc/rfc4287.txt" onclick="window.open(this.href); return false;">Atom 1.0 Specification</a><br />click <a href="%s" onclick="window.open(this.href); return false;">here</a> to view detected error(s) on valdiation page.<br /><br />',
+	'FEED_RECHECK'			=> 'Re-validate & auto-config',
 	'FEED_URL'				=> 'Feed URL',
 	'FEED_URL_EXPLAIN'	=> 'Enter URL of feed source(min. 12, max. 255 chars).',
 	'FEED_VALIDATED'		=> '[<strong>Feed validated</strong>]',
@@ -114,14 +115,13 @@ $lang = array_merge($lang, array(
 	'POST_MODE'				=> 'New topic intervals',
 	'POST_MODE_EXPLAIN'	=> 'Set intervals in calendar days or month to post as new topic.<br /><em>Note:</em> If you select <strong>Article</strong>, each article will be posted as new topic, and setting of <strong>Feed Name as Subject</strong> will be ignored!',
 	'PROMPT'			=> 'Information<br /><br />',
+	'SRC_FILTER'			=> 'Source Filter',
+	'SRC_FILTER_EXPLAIN'	=> 'Filter particular source contents.<br /><em>Note:</em> This filter is for RSS only.',
 	'SELECT_FORUM_BOT'	=> 'Settings auto dectected.<br />Please select post Forum/Bot, review before submit.',
 	'TEXT_FILTER'				=> 'Text filter',
 	'TEXT_FILTER_EXPLAIN'	=> 'Filter all text data type.<br /><em>Note:</em> Please try phpBB\'s <strong>Word censoring</strong> feature first!',
 	'URL_FILTER'			=> 'URL filter',
 	'URL_FILTER_EXPLAIN'	=> 'Filter all URLs data type.<br /><em>Note:</em> May need to enable HTML support.',
-	// acp add/edit
-	'RESPONSE_HEADER'	=> '<br />HTTP response header:<br />',
-	'XML_BLOCKED'		=> 'Failed to load source XML!<br />Most likely cookie set and used to blocked the real XML!<br />',
 ));
 
 ?>

@@ -81,7 +81,7 @@
 			<edit>
 				<comment lang="en">CJK support is detected by the posting bot language.</comment>
 				<comment lang="zh-TW">中日韓支援是取決於發佈機器人語言設定的</comment>
-				<find><![CDATA[define('FIND_BOT_ID', '[RSS Bot]');	// string to identify our posting bot
+				<find><![CDATA[define('FIND_BOT_ID', '[FIND Bot]');	// string to identify our posting bot
 ]]></find>
 				<action type="after-add"><![CDATA[define('FIND_CJK', 'zh_cmn_hant');	// the CJK flag, comma delimited string]]></action>
 			</edit>

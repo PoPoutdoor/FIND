@@ -1,4 +1,4 @@
-Customize
+Customize v1.1.0
 
 
 A. Change posting bot keyword
@@ -6,7 +6,7 @@ A. Change posting bot keyword
 		Edit includes/constants.php 
 
 		FIND 
-			define('FIND_BOT_ID', '[RSS Bot]');        // string to identify our posting bot 
+			define('FIND_BOT_ID', '[FIND Bot]');        // string to identify our posting bot 
 		REPLACED WITH 
 			define('FIND_BOT_ID', '{My Bot ID}');        // string to identify our posting bot 
 
@@ -19,7 +19,7 @@ B. Change appearance of imported post
 	language/{lang}/find_posting.php.
 
 	If you create custom BBCode for Horizontal line (HR) and Tab (TAB), update related entries with
-	your BBCode will do.
+	your BBCode will do the trick.
 
 	Note: If you mess up with language file, your phpBB will cease functioning!
 
@@ -29,7 +29,7 @@ C. Add topic icon
 	To enable topic icon, first enable topic icon for the posting forum(s), then edit includes/constants.php
 
 		FIND
-			//	RSS Input
+			//	FIND
 
 		ADD AFTER
 			define('FIND_ICON', 6);   // this is the find post icon_id
@@ -39,7 +39,7 @@ C. Add topic icon
 
 D. Add custom filters
 
-	Edit includes/find_filters.php
+	You can set custom filter for each feed from ACP now!
 
 	Note: To use html filter, enable ACP feed html setting first!
 
@@ -58,22 +58,8 @@ E. Change "Read More" text link to link (Source: [url]http://the_source/link[/ur
 
 F. Additional Atom feed support
 
-	Edit includes/functions_find.php
-
-		FIND
-			default:
-
-		ADD ABOVE
-			case '{atom feed url}':
-				{
-						:
-					code to convert some tags to rss format
-						:
-				}
-			break;
-
-	Note: Replace {atom feed url} to the url of interested. Study the "BBC Chinese" code block and
-	write your own conversion code.
+	Namespace support been added, starting from this version. Check the limited media:thumbnail code under 
+	'//--- namespace support ---//' from includes/functions_find.php
 
 
 

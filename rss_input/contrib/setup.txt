@@ -1,12 +1,12 @@
-Initial setup 
+Initial setup v1.1.0
 
 
 1) Create the posting bot 
 
 	1. Login ACP, GENERAL - QUICK ACCESS -> Spiders/Robots page, click Add bot. 
 
-	2. Input "RSS Express [RSS Bot]" as the Bot name, for example. Please make sure the input  
-	contains the string "[RSS Bot]", this is the keyword to identify posting bot in this mod.         
+	2. Input "News Express [FIND Bot]" as the Bot name, for example. Please make sure the input  
+	contains the string "[FIND Bot]", this is the keyword to identify posting bot in this mod.         
 
 	3. Select the Bot language, which is 'British English' if your phpBB3 site doesn't have other
 	languages installed. Bot language is used as posting language for the imported feed. 
@@ -17,13 +17,13 @@ Initial setup
 	for Bot IP address. If you don't, input "127.0.0.1". DON'T leave this blank! 
 
 
-2) Manage feed from GENERAL - BOARD CONFIGURATION -> RSS Import Settings.
+2) Manage feed from GENERAL - BOARD CONFIGURATION -> FIND Settings.
 
 	Click 'Add Feed' to proceed
 
 	For example, add this mod's topic RSS from pbpbb.com:
 
-		Feed Name <- RSS Input - Development
+		Feed Name <- FIND - Development
 		Feed URL  <- http://www.phpbb.com/community/feed.php?t=1858455
 
 		Select Post Forum/Bot from drop down list
@@ -31,65 +31,68 @@ Initial setup
 
 	Click 'Submit' to update feed list.
 
-	After screen refreshed, Click 'Activate' from the list to activate feed.
-
-	Note: Validate source before proceeding to next step.
-
 
 3) Verify mod installation
 
-	1. Click the check box to select feed
-	2. Select 'Import now' from the drop down list
-	3. Click 'Submit' to manual import selected feed(s)
+	Click 'Import' from feed list, or:
+
+		1. Click check box to select feed
+		2. Select 'Import now' from the drop down list
+		3. Click 'Submit'
+	
+	to manual import selected feed(s)
 
 	Note: If the mod installation is good, the 'Information' page will show a line with
 	"Feed(s) with error: None." shortly after the mouse click.
 
 
-4) Secure rss_import.php 
+4) Secure feed_import.php 
  
-	Q. Why you need to secure rss_import.php? 
+	Q. Why you need to secure feed_import.php? 
 	
-	A. Since rss_import.php generate some server loads and resides in your phpBB root, which is  
+	A. Since feed_import.php generate some server loads and resides in your phpBB root, which is  
 	accessible by anyone, there are risks of DOS attack to your site. 
 
 
-	The default is to allow feed import by external program from "your server IP".  
+	The default is to allow feed import by any external program.  
 
-	1. Default is for dedicated web servers with own IP. Possible DOS attack handled by phpbb core. 
-	The recommendation is to do 2 and 3 below. 
-
-	2. Set 'USER_AGENT' with the ID of external program which calls rss_import.php in your crontab. 
-
-	Example crontab entry: 
-
-		# Your phpbb site: automatic RSS feeds import, hourly update at xx30 
-		30  */1 * * *   curl -Ss http://www.example.com/rss_import.php?feed=1,2,3 
+	1. Set 'USER_AGENT' with the ID of external program which calls feed_import.php in your crontab. 
 
 	From example above, your external program is 'curl' and the User Agent contains the string  
 	"curl". You have to figured out the User Agent string from apache access log if you use other   
 	programs. 
 
-		Edit rss_import.php: 
+	This prevents running code other than calling external program which user-agent contains "curl".
+	This will NOT be sufficient for attacks outside your server.
+	
+	If external program support custom User-Agent, set to something like encrypted string. This will
+	avoid most DoS attempt.
+
+		Edit feed_import.php: 
 
 		FIND 
 			define('USER_AGENT', '');        // e.g. set 'lwp-request' for perl GET, 'curl' for curl. 
 		REPLACED WITH 
-			define('USER_AGENT', 'curl'); 
+			define('USER_AGENT', 'secret'); 
 
-	This prevents running RSS Import code other than calling from the web server IP with external 
-	program which user-agent contains "curl". This will be sufficient for attacks outside your server. 
+		Example crontab entry: 
 
-	3. If your web server's IP is shared with other sites, rename rss_import.php to what others can't
+			# Your phpbb site: automatic feed import, hourly update at xx30 
+			30  */1 * * *   curl -sA secret http://www.example.com/feed_import.php?feed=1,2,3 
+
+	2. If your web server's IP is shared with other sites, rename feed_import.php to what others can't
 	guess easily. For example, '_somethingelse_.php'. Changing the filename can prevents possible DOS
 	attack from any IPs. Remember to update your CRON job entries for the filename changes. 
 	
-	4. To further secure rss_import.php, you can rename and place this file in dedicated URL.
+	3. To further secure feed_import.php, you can rename and place this file in dedicated URL.
 
 	Example crontab entry: 
 
 		# Your phpbb site: automatic RSS feeds import, hourly update at xx30 
-		30  */1 * * *   curl -Ss http://www.example.com/_hard_to_guess/_other_name.php?feed=1,2,3 
+		30  */1 * * *   curl -sA secret http://www.example.com/_hard_to_guess/_other_name.php?feed=1,2,3 
+		
+	4. Add server-side access control if you can. You can do much more on server-side, like IP restriction
+	or do access rate limit.
 
 
 5) Verify the initial setup 
@@ -98,12 +101,12 @@ Initial setup
 	2. If something wrong with the settings or no post imported, the cron job owner will get an
 	  automatic email with error messages for source related issues. 
 	3. If no post imported and no email sent, login to server terminal and try command line import. 
-		e.g. curl http://www.example.com/rss_import.php?feed=1 
+		e.g. curl http://www.example.com/feed_import.php?feed=1 
 
 	If you don't have terminal access or got error message from the command line with keyword 
-	'deny' or 'security', ask your server admin for support. 
+	like 'block', 'deny' or 'security', ask your server admin for support. 
 
-	Note: rss_import.php designed for automatic feed import with scheduler (e.g. CRON for Linux). 
+	Note: feed_import.php designed for automatic feed import with scheduler (e.g. CRON for Linux). 
 	Null page will be returned on success, plain text on error. 
 
 
@@ -111,7 +114,7 @@ Initial setup
 
 	If you want to show "unauthorized access" message:
 
-		Edit rss_import.php: 
+		Edit feed_import.php: 
 
 		FIND 
 			define('HACK_MSG', false); 

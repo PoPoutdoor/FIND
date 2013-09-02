@@ -3,10 +3,10 @@
 *
 * @author PoPoutdoor
 *
-* @package RSS_input
+* @package FIND
 * @version $Id:$
 * @copyright (c) 2008-2013 PoPoutdoor
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @license http://opensource.org/licenses/GPL-2.0
 *
 * @language English [en]
 * @translator (c) ( PoPoutdoor )
@@ -57,7 +57,7 @@ $lang = array_merge($lang, array(
 	'TAB'			=> ' - ',	// Tab.
 	'TRUNCATE'	=> '...',	// Truncate string.
 
-// custom message below
+	// custom message below
 	'IMG_RESTRICT'	=> "\n" . '[[i]Protected Image[/i]]' . "\n",
 
 ));

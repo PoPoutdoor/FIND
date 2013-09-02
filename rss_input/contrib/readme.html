@@ -18,9 +18,10 @@
 <BODY LANG="zh-HK" DIR="LTR">
 <PRE><FONT FACE="Arial Black"><FONT SIZE=3><SPAN LANG="en-US">About this mod  </SPAN></FONT></FONT>
 
-<FONT FACE="Luxi Sans, sans-serif"><SPAN LANG="en-US">RSS Input is a mod for phpbb3, which import RSS news feed into your forum.  </SPAN></FONT>
+<FONT FACE="Luxi Sans, sans-serif"><SPAN LANG="en-US">FIND is a mod for phpbb3, which import ATOM/RSS news feed into your forum.  </SPAN></FONT>
 
-<FONT FACE="Luxi Sans, sans-serif"><SPAN LANG="en-US">Since phpbb3 doesn't provide true cron service, OS scheduler(*nix: cron) support is required for automatic feed import. This mod functions without cron support, but not practical for daily use.</SPAN></FONT>
+<FONT FACE="Luxi Sans, sans-serif"><SPAN LANG="en-US">Since phpbb3 doesn't provide true cron service, OS scheduler(*nix: cron) support is required for automatic feed import.
+This mod functions without cron support, but not practical for daily use.</SPAN></FONT>
 
 <A NAME="__DdeLink__0_1263809919"></A><FONT FACE="Arial Black"><FONT SIZE=3><SPAN LANG="en-US">Prerequisite</SPAN></FONT></FONT>
 
@@ -30,7 +31,7 @@
 <UL>
 	<LI><PRE STYLE="margin-bottom: 0.5cm; line-height: 100%"><FONT FACE="Comic Sans MS, cursive"><FONT SIZE=1 STYLE="font-size: 9pt"><SPAN LANG="en-US">database server: MySQL (versions as required for phpBB3 installation)</SPAN></FONT></FONT></PRE>
 	<LI><PRE STYLE="margin-bottom: 0.5cm; line-height: 100%"><FONT FACE="Comic Sans MS, cursive"><FONT SIZE=1 STYLE="font-size: 9pt"><SPAN LANG="en-US">web server: (software and versions as required for phpBB3 installation)</SPAN></FONT></FONT></PRE>
-	<LI><PRE STYLE="margin-bottom: 0.5cm; line-height: 100%"><FONT FACE="Comic Sans MS, cursive"><FONT SIZE=1 STYLE="font-size: 9pt"><SPAN LANG="en-US">php: higher than 5.0 with settings of 'safe_mode = off'. Settings of 'allow_url_fopen = on' OR with working cURL library.</SPAN></FONT></FONT></PRE>
+	<LI><PRE STYLE="margin-bottom: 0.5cm; line-height: 100%"><FONT FACE="Comic Sans MS, cursive"><FONT SIZE=1 STYLE="font-size: 9pt"><SPAN LANG="en-US">php: 5.3 or later, with settings of 'safe_mode = off'. Settings of 'allow_url_fopen = on' OR with working cURL library.</SPAN></FONT></FONT></PRE>
 	<LI><PRE STYLE="margin-bottom: 0.5cm; line-height: 100%"><FONT FACE="Comic Sans MS, cursive"><FONT SIZE=1 STYLE="font-size: 9pt"><SPAN LANG="en-US">OS scheduler: with ability to create/access/execute schedule jobs. For *nix, able to execute `crontab -e` either by console or by wrapper tools.</SPAN></FONT></FONT></PRE>
 </UL>
 <PRE><FONT COLOR="#000000"><FONT FACE="Luxi Sans, sans-serif"><SPAN LANG="en-US"><SPAN STYLE="background: #ff3333">DO NOT install this mod if you are not sure!</SPAN></SPAN></FONT></FONT>
@@ -71,12 +72,12 @@
 </OL>
 <OL>
 	<UL>
-		<LI><PRE STYLE="margin-bottom: 0.5cm"><SPAN LANG="en-US"><FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">Check your feed with <A HREF="http://www.feedvalidator.org/">FEED Validator</A> first! If the result is not validate,ask the source respondents for support. Please ask if you need paid support.</SPAN></FONT></SPAN></PRE>
+		<LI><PRE STYLE="margin-bottom: 0.5cm"><SPAN LANG="en-US"><FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">Check your feed with <A HREF="http://validator.w3.org/feed">W3C Feed Validation Service</A> first! If the result is not validate,ask the source respondents for support. Please ask if you need paid support.</SPAN></FONT></SPAN></PRE>
 	</UL>
 </OL>
 <OL>
 	<UL>
-		<LI><PRE STYLE="margin-bottom: 0.5cm"><FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">You have to provide the link, highlighted contents in Recommendations section from FEED Validator result page (if any), with the procedures to reproduced the issue.</SPAN></FONT></PRE>
+		<LI><PRE STYLE="margin-bottom: 0.5cm"><FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">You have to provide the link, highlighted contents in Recommendations section from W3C Feed Validation Service result page (if any), with the procedures to reproduced the issue.</SPAN></FONT></PRE>
 	</UL>
 </OL>
 <OL>
@@ -89,12 +90,9 @@
 </OL>
 <PRE STYLE="margin-left: 1.25cm"><FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">To put it simple: free means you do your jobs (by providing useful and meaningful info) to trade for the author's support!</SPAN></FONT>
 
-<FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">I port this mod because I need the features before I upgrade my phpbb 2.0.x. I release this mod</SPAN></FONT>
- <FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">because I think many others need this. If you think this mod is useful and like to see it gets</SPAN></FONT>
- <FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">improved, you have to post every piece of needed information stated above, these help me or</SPAN></FONT>
- <FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">others to follow your issue.</SPAN></FONT>
+<FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">I port this mod because I need the features before I upgrade my phpbb 2.0.x. I release this mod<br />because I think many others might need this. If you think this mod is useful and like to see it<br />gets improved, you have to post every piece of needed information stated above, these help me<br />or others to follow your issue.</SPAN></FONT>
 
-<FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">Support priority based on my free time and the info quality provided.</SPAN></FONT></PRE>
+<FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">Support priority based on my free time and the provided info quality.</SPAN></FONT></PRE>
 <UL>
 	<UL>
 		<LI><PRE STYLE="margin-bottom: 0.5cm"><FONT FACE="FreeSans, sans-serif"><SPAN LANG="en-US">Don't copy &amp; post everything on screen! Try your best to pick some lines you think related to your problem.</SPAN></FONT></PRE>

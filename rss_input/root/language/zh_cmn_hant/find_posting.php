@@ -3,10 +3,10 @@
 *
 * @author PoPoutdoor
 *
-* @package RSS_input
+* @package FIND
 * @version $Id:$
 * @copyright (c) 2008-2013 PoPoutdoor
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @license http://opensource.org/licenses/GPL-2.0
 *
 * @language Traditional Chinese [zh_cmn_hant]
 *
@@ -55,7 +55,7 @@ $lang = array_merge($lang, array(
 	'RELATED'	=> "\n\n[i]相關文章[/i]",
 	'TAB'			=> ' - ',	// Tab.
 	'TRUNCATE'	=> '﹍',		// Truncate string.
-// custom message below
+	// custom message below
 	'IMG_RESTRICT'	=> "\n" . '[[i]受保護圖象[/i]]' . "\n",
 
 ));

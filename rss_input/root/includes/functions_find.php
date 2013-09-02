@@ -3,10 +3,10 @@
 *
 * @author PoPoutdoor
 *
-* @package RSS_input
+* @package FIND
 * @version $Id:$
 * @copyright (c) 2008-2013 PoPoutdoor
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @license http://opensource.org/licenses/GPL-2.0
 *
 */
 
@@ -20,9 +20,13 @@ if (!defined('IN_PHPBB'))
 
 
 /**
-*	Main function
+*	Fetch and post feed
+*
+*	@param	array	value is feed id
+*
+*	@return	array	feed operation status
 */
-function get_rss_content($sql_ids = '')
+function post_feed( $ids = array() )
 {
 	global $db, $user;
 	// This pass local vars to called functions
@@ -35,12 +39,16 @@ function get_rss_content($sql_ids = '')
 		trigger_error($user->lang['NO_PHP_SUPPORT']);
 	}
 
-	if (empty($sql_ids))
+	if (empty($ids))
 	{
 		trigger_error('NO_IDS');
 	}
 
+	$sql_ids = (sizeof($ids) > 1) ? ' IN (' . implode(",", $ids) . ')' : ' = ' . implode(",", $ids);
+
 	$is_cjk = false;
+	// current custom filter keys
+	$filter_keys = array('URL', 'TEXT', 'HTML');
 	// init return messages
 	$msg = array('ok' => '', 'skip' => '', 'err' => '');
 
@@ -52,9 +60,6 @@ function get_rss_content($sql_ids = '')
 			AND n.forum_id = f.post_forum 
 		ORDER BY f.post_forum ASC";
 	$result = $db->sql_query($sql);
-
-	// current custom filter keys
-	$filter_keys = array('URL', 'TEXT', 'HTML');
 
 	// fetch news from selected feeds
 	while ($row = $db->sql_fetchrow($result))
@@ -68,13 +73,10 @@ function get_rss_content($sql_ids = '')
 			continue;
 		}
 
-		// strip off bot name identification string
-		$bot_name = trim(str_replace(FIND_BOT_ID, '', $row['bot_name']));
-
 		// Bot not active, skipped to next feed
 		if (!$row['bot_active'])
 		{
-			$msg['skip'][] = sprintf($user->lang['BOT_NOT_ACTIVE'], $bot_name);
+			$msg['skip'][] = sprintf($user->lang['BOT_NOT_ACTIVE'], $row['bot_name']);
 			continue;
 		}
 
@@ -101,11 +103,10 @@ function get_rss_content($sql_ids = '')
 
 		$user->ip							= $row['bot_ip'];
 		$user->data['user_id']			= (int) $row['bot_id'];	// also used for update forum tracking
-		$user->data['username']			= $bot_name;
+		$user->data['username']			= trim(str_replace(FIND_BOT_ID, '', $row['bot_name']));
 		$user->data['user_colour']		= $row['user_colour'];
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
 
-		// FIXME: session cookie is set for blocking access to real xml file, don't know how to disable cookie
 		// try fixing server-side issues
 		$opts = array('http' =>
 			array(
@@ -117,37 +118,27 @@ function get_rss_content($sql_ids = '')
 
 		$context = stream_context_create($opts);
 		libxml_set_streams_context($context);
+		libxml_use_internal_errors(true);
+		$xml = @simplexml_load_file('compress.zlib://' . $row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
 
-		// suppress error
-		//libxml_use_internal_errors(true);
-		$xml = @simplexml_load_file("compress.zlib://" . $row['feed_url'], 'SimpleXMLElement', LIBXML_NOCDATA);
-		// used if suppressed and handle error in this code
-		//		$msg['err'][] = libxml_get_errors();
-		//libxml_clear_errors();
-
-		// null page? file not loaded, source issue
 		if ($xml === false)
 		{
 			$msg['err'][] = sprintf($user->lang['FEED_FETCH_ERR'], $feedname, $row['feed_url']);
-			$msg['err'][] = $user->lang['RESPONSE_HEADER'];
-
-			foreach($http_response_header as $line)
-			{
-				$msg['err'][] = $line;
-			}
-
+			$msg['err'][] = xml_fetch_error($http_response_header);
 			continue;
 		}
 
 		// build feed filter
-	//	$feed_filters = json_decode($row['feed_filters'], true);
+		//	php >= 5.4 : $feed_filters = json_decode($row['feed_filters'], true);
 		$feed_filters = unserialize($row['feed_filters']);
 
+		// init/set each filter
 		foreach ($filter_keys as $key)
 		{
 			$key = strtolower($key);
-			$vals = $feed_filters[${key}];
+
 			${$key . '_filter'} = array();
+			$vals = $feed_filters[${key}];
 
 			if (!is_null($vals))
 			{
@@ -164,6 +155,7 @@ function get_rss_content($sql_ids = '')
 		// check source timestamp
 		$now = time();
 
+		// $feed_ts is last feed update timestamp(or last build for RSS)
 		if ($is_rss)
 		{
 			$feed_ts = ( isset($xml->channel->lastBuildDate) ) ? strtotime($xml->channel->lastBuildDate) : strtotime($xml->channel->pubDate);
@@ -173,11 +165,9 @@ function get_rss_content($sql_ids = '')
 			$feed_ts = strtotime($xml->updated);
 		}
 
-		//--- $feed_ts is last feed update timestamp(or last build for RSS) ---//
-
-		if ($feed_ts === FALSE)
+		if ($feed_ts === false)
 		{
-			// issue error for ATOM but continued for RSS
+			// issue error and skip for ATOM
 			if ($is_rss)
 			{
 				$feed_ts = $now;	
@@ -189,12 +179,12 @@ function get_rss_content($sql_ids = '')
 			}
 		}
 
-		// RSS ttl support
+		// RSS: TTL support
 		$ttl = ( isset($xml->channel->ttl) ) ? $feed_ts + $xml->channel->ttl * 60 : 0;
 
+		// source not updated, fetch next feed
 		if ( $feed_ts <= $last_update || $ttl >= $now)
 		{
-			// source not updated, skip to next
 			$msg['skip'][] = sprintf($user->lang['FEED_NO_UPDATES'], $feedname);
 			continue;
 		}
@@ -219,8 +209,7 @@ function get_rss_content($sql_ids = '')
 		}
 
 		// handle item/entry
-		$i = 0;
-		$no_post_ts = true;
+		$no_post_ts = false;
 
 		if ($is_rss)
 		{
@@ -228,12 +217,19 @@ function get_rss_content($sql_ids = '')
 
 			if (isset($feed[0]->pubDate))
 			{
+				foreach($feed as $post)
+				{
+					$post->pubDate = strtotime(trim($post->pubDate));
+				}
+
 				usort($feed, function($a, $b)
 				{
 					return strcmp($b->pubDate, $a->pubDate);
 				});
-
-				$no_post_ts = false;
+			}
+			else
+			{
+				$no_post_ts = true;
 			}
 		}
 		else
@@ -246,48 +242,52 @@ function get_rss_content($sql_ids = '')
 
 			if (isset($feed[0]->updated))
 			{
+				// TODO: add posting lang:update flag
+				foreach($feed as $post)
+				{
+					$post->updated = strtotime(trim($post->updated));
+				}
+
 				usort($feed, function($a, $b)
 				{
 					return strcmp($b->updated, $a->updated);
 				});
-
-				$no_post_ts = false;
 			}
 			elseif (isset($feed[0]->published))
 			{
+				// TODO: add posting lang:publish flag
+				foreach($feed as $post)
+				{
+					$post->published = strtotime(trim($post->published));
+				}
+
 				usort($feed, function($a, $b)
 				{
 					return strcmp($b->published, $a->published);
 				});
-
-				$no_post_ts = false;
+			}
+			else
+			{
+				$no_post_ts = true;
 			}
 		}
 
+		$i = 0;
 		foreach ($feed as $post)
 		{
-			// Respect item limit setting
+			// Respect limit setting
 			if ($max_articles && $i++ === $max_articles)
 			{
 				break;
 			}
 
-			if ($no_post_ts)
+			// check article timestamp
+			if (!$no_post_ts)
 			{
-				$post_ts = $feed_ts;	// should issue timestamp error and exit this feed processing
-			}
-			else
-			{
-				// check item timestamp
-				$post_ts = ($is_rss) ? strtotime($post->pubDate) : (isset($post->updated) ? strtotime($post->updated) : strtotime($post->published));
-
-				if ($post_ts === FALSE)
-				{
-					$post_ts = $feed_ts;	// should issue timestamp error and exit this feed processing
-				}
+				$post_ts = ($is_rss) ? $post->pubDate : (isset($post->updated) ? $post->updated : $post->published);
 			}
 
-			// skip to next item if outdated
+			// skip to next article if outdated
 			if ($post_ts <= $last_update)
 			{
 				$skipped++;
@@ -295,46 +295,64 @@ function get_rss_content($sql_ids = '')
 			}
 
 			// latest post timestamp
-			if ($latest_ts < $post_ts)
+			if (!$no_post_ts && $latest_ts < $post_ts)
 			{
 				$latest_ts = $post_ts;
 			}
 
-			// preprocess item values
+			// preprocess article data
 			$title = fix_text($post->title);
 			$desc = ($is_rss) ? $post->description : ( (isset($post->content)) ? $post->content : $post->summary );
-
+			// Not validate, issue error
 			if (empty($title) && empty($desc))
 			{
-				// Not validate, issue error
 				$msg['err'][] = sprintf($user->lang['NO_POST_INFO'], $feedname);
 				continue;
 			}
 
+			// Add special raw $desc filter below
+
 			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
 			
-			// prepare the message text
-/* bb_message() */
+			// prepare message body
 			$message = '';
 
-			// no timestamp
-			if ($post_ts != $feed_ts)
+			// article time			
+			if (!$no_post_ts)
 			{
 				$message .= sprintf($user->lang['BB_POST_TS'], $user->format_date($post_ts));
 			}
-
+			// article category
 			if ($inc_cat && isset($post->category))
 			{
 				$post_cat = fix_text($post->category);
 				$message .= (!empty($post_cat)) ? sprintf($user->lang['BB_CAT'], $post_cat) : '';
 			}
 
+			// RSS: article source
 			if (isset($post->source))
 			{
 				$post_source = fix_text($post->source);
+				// Apply source filters
+				foreach ($feed_filters['src'] as $filter)
+				{
+					if (!empty($filter))
+					{
+						if (preg_match($filter, $post_source))
+						{
+							if ($max_articles)
+							{
+								$max_articles++;
+							}
+							continue 2;
+						}
+					
+					}
+				}
+
 				$message .= (!empty($post_source)) ? sprintf($user->lang['BB_POST_SRC'], $post_source) : '';
 			}
-
+			// article author
 			if (isset($post->author->name))
 			{
 				$author	= fix_text($post->author->name);
@@ -346,37 +364,61 @@ function get_rss_content($sql_ids = '')
 			}
 
 			$message .= (!empty($author)) ? sprintf($user->lang['BB_AUTHOR'], $author) : '';
-
+			// RSS: article enclosure
+			// TODO: ATOM need namespace support code (link elements with rel="enclosure")
 			if (isset($post->enclosure))
 			{
 				$enc_link = fix_url($post->enclosure['url']);
 				$message .= ($post->enclosure['type'] == 'image/jpeg') ? "\n[img]${enc_link}[/img]\n" : "\n[url]${enc_link}[/url]\n";
 			}
 
-			// Now we add the content
+			// article contents
 			if (!empty($desc))
 			{
 				if ($inc_html)
 				{
-					html2bb($desc);
+					$desc = fix_text($desc, true, true);
+					$desc = html2bb($desc);
 				}
 
-				$desc = strip_tags($desc);
+				$desc = fix_text($desc, false, true);
 
-				$desc = fix_text($desc, $inc_html, true);
-
+				// optional CJK support
 				if ($is_cjk && function_exists('cjk_tidy'))
 				{
 					$desc = cjk_tidy($desc);
 					$post_title = cjk_tidy($post_title);
 				}
 
+				// limit characters to post
 				if ($max_contents)
 				{
 					$desc = truncate_string($desc, $max_contents, 255, FALSE, $user->lang['TRUNCATE']);
 				}
+
+				// RSS+XML namespace support
+				if ($inc_ns)
+				{
+					// media:content
+					if (@count($post->children($ns['media'])))
+					{
+						$media = $post->children($ns['media']);
+
+						if (isset($media->content))
+						{
+							$media_img = (string) $media->content->attributes()->url;
+						}
+
+						$img = fix_url($media_img[0]);
+						if (!empty($img))
+						{
+							$desc = '[img]' . $img . '[/img]' . $user->lang['TAB'] . $desc;
+						}
+					}
+				}
 			}
 
+			// article related link(s)
 			if ($is_rss)
 			{
 				$message .= "\n" . $desc . "\n";
@@ -389,7 +431,7 @@ function get_rss_content($sql_ids = '')
 				{
 					$message .= (!empty($desc)) ? "\n" : '';
 					$message .= sprintf($user->lang['BB_URL'], $link, $user->lang['READ_MORE']);
-					$message .= (empty($comments)) ? "\n" : $message .= $user->lang['TAB'];
+					$message .= (empty($comments)) ? "\n" : $user->lang['TAB'];
 				}
 			
 				if (!empty($comments))
@@ -417,13 +459,16 @@ function get_rss_content($sql_ids = '')
 						{
 							$media = $link->children($ns['media']);
 							$media_thumb = $media->content->thumbnail;
-							$j = 0;	// for BBC Chinese, use the 2nd thumbnail data
-							foreach ($media_thumb as $thumb)
+							if (@count($media_thumb))
 							{
-								$j++;			// for BBC Chinese
-								if ($j%2)	// for BBC Chinese
+								foreach ($media_thumb as $thumb)
 								{
 									$thumb_img = fix_url($thumb->attributes()->url);
+									// select first thumbnail only
+									if (!empty($thumb_img))
+									{
+										break;
+									}
 								}
 							}
 						}
@@ -464,9 +509,9 @@ function get_rss_content($sql_ids = '')
 				}
 
 				$message .= "\n" . $desc . "\n";
-			}
-/* end bb_message() */
-			
+			}	// end message body
+
+			// store  message body
 			if (empty($post_mode))
 			{
 				$post_ary[] = array($post_title, $message);
@@ -477,14 +522,14 @@ function get_rss_content($sql_ids = '')
 			}
 
 			$processed++;
-		} // end process items
+		} // end article process 
 			
 		if ($processed)
 		{
 			unset($feed);
 			$heading = $feed_info = '';
 
-			// should we include feed info
+			// set post header
 			if ($inc_info)
 			{
 				$source_title	= ($is_rss) ? fix_text($xml->channel->title) : fix_text($xml->title);
@@ -515,20 +560,18 @@ function get_rss_content($sql_ids = '')
 				$heading = preg_replace("#\n+#", "\n", $heading);
 			}
 
-			// Always show the copyright notice if provided
+			// always show feed info
 			$source_rights	= ($is_rss) ? $xml->channel->copyright : $xml->rights;
 			$source_rights	= fix_text(str_replace("©", "&#169;", $source_rights));
-
 			if (!empty($source_rights))
 			{
 				$feed_info .= sprintf($user->lang['BB_COPYRIGHT'], $source_rights);
 			}
-			
+
 			if ($feed_ts != $now)
 			{
 				$feed_info .= sprintf($user->lang['BB_SOURCE_DATE'], $user->format_date($feed_ts));
 			}
-
 			// clean up
 			$feed_info = str_replace("\n\n", "\n", $feed_info) . $user->lang['HR'];
 			
@@ -539,7 +582,7 @@ function get_rss_content($sql_ids = '')
 				$latest_ts = $now; 
 			}
 
-			// submit each item as new post or reply
+			// submit each article as new post or reply
 			if (empty($post_mode))
 			{
 				foreach ($post_ary as $not_used => $data)
@@ -556,13 +599,13 @@ function get_rss_content($sql_ids = '')
 					$db->sql_freeresult($query);
 
 					$mode = (empty($topic_id))? 'post' : 'reply';
-					rss_autopost($forum_id, $forum_name, $mode, $subject, $heading . $feed_info . $post_contents);
+					autopost($forum_id, $forum_name, $mode, $subject, $heading . $feed_info . $post_contents);
 				}
 			}
-			// pack all items and additional info in one post
+			// pack all article data with additional info in one post
 			else
 			{
-				// should we use the acp feedname as subject?
+				// set post subject
 				$subject = $feedname;
 				if (empty($feedname_topic))
 				{
@@ -610,7 +653,7 @@ function get_rss_content($sql_ids = '')
 					$contents = $heading . $contents;
 				}
 
-				rss_autopost($forum_id, $forum_name, $mode, $subject, $contents, $topic_id);
+				autopost($forum_id, $forum_name, $mode, $subject, $contents, $topic_id);
 			}
 
 			// update feed last visit time
@@ -636,6 +679,53 @@ function get_rss_content($sql_ids = '')
 }
 
 
+function xml_fetch_error($http_response_header)
+{
+	global $user;
+
+	$error = '';
+
+	$error .= $user->lang['RESPONSE_HEADER'];
+
+	foreach($http_response_header as $line)
+	{
+		if (preg_match('#^(?:HTTP|Content-Type|X-)#', $line))
+		{
+			$error .= "\t$line\n";
+		}
+	}
+
+	if ($xml_error = libxml_get_errors())
+	{
+		$err = $xml_error[0];
+		if ($err->file)
+		{
+			$error .= $user->lang['XML_ERROR'];
+
+			switch ($err->level)
+			{
+				case LIBXML_ERR_WARNING:
+					$error .= "Warning $err->code: ";
+					break;
+				case LIBXML_ERR_ERROR:
+					$error .= "Error $err->code: ";
+					break;
+				case LIBXML_ERR_FATAL:
+					$error .= "Fatal Error $err->code: ";
+					break;
+			}
+
+			$error .= trim($err->message);
+			$error .= sprintf($user->lang['LINE_COLUMN'], $err->line, $err->column);
+		}
+
+		libxml_clear_errors();
+	}
+
+	return $error;
+}
+
+
 /**
 * Bot Submit Post
 *
@@ -643,7 +733,7 @@ function get_rss_content($sql_ids = '')
 * No edit, no poll, no attachment, no quote, no globalising, no indexing
 *	no notifications. tracking/markread for poster.
 */
-function rss_autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_id = 0)
+function autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_id = 0)
 {
 	global $user, $phpEx, $phpbb_root_path;
 
@@ -652,14 +742,16 @@ function rss_autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_
 		include($phpbb_root_path . 'includes/functions_posting.' . $phpEx);
 	}
 
-	// censor_text()
-	$subject = censor_text($subject);
-	$message = censor_text($message);
 
+	// censor_text()
+	$subject = htmlentities($subject);
+//	$subject = censor_text($subject);
+	$message = htmlentities($message);
+//	$message = censor_text($message);
 	// variables to hold the parameters
 	$uid = $bitfield = $options = '';
-	generate_text_for_storage($subject, $uid, $bitfield, $options, false, false, false);
-	generate_text_for_storage($message, $uid, $bitfield, $options, true, true, true);
+	generate_text_for_storage($subject, $uid, $bitfield, $options);
+	generate_text_for_storage($message, $uid, $bitfield, $options, true, true, false);
 
 	$icon_id = (defined('FIND_ICON')) ? FIND_ICON : false;
 
@@ -754,6 +846,13 @@ function fix_url($url)
 		}
 	}
 
+	// yahoo link
+	$pos = strrpos($url, '-/http');
+	if ($pos !==false)
+	{
+		$url = substr($url, $pos + 2);
+	}
+
 	// validate url is prefixed with (ht|f)tp(s)?
 	if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $url))
 	{
@@ -767,8 +866,10 @@ function fix_url($url)
 /**
 *	Convert html tags to BBCode, supported tags are: strong,b,u,em,i,ul,ol,li,img,a,p (11)
 */
-function html2bb(&$html, $html_filter = array())
+function html2bb($html)
 {
+	global $html_filter;
+
 	// <strong>...</strong>, <b>...</b>, <u>...</u>, <em>...</em>, <i>...</i>, <p>...</p>, <li>...</li>, <ul>...</ul>, </ol>
 	//	to [b]...[/b], [b]...[/b], [u]...[/u], [i]...[/i], [i]...[/i], \n\n...\n\n, [*]...\n, [list]...[/list], [/list]
 	$search = array('<strong>', '</strong>', '<b>', '</b>', '<u>', '</u>', '<em>', '</em>', '<i>', '</i>',
@@ -778,62 +879,61 @@ function html2bb(&$html, $html_filter = array())
 		"\n\n", "\n\n", '[*]', "\n", '[list]', '[/list]', '[/list]',
 	);
 	$html = str_replace($search, $replace, $html);
-	$html = preg_replace('#<ul\s.*?>#is', '[list]', $html);	// <ul ...>
-	$html = preg_replace('#<ol\s+type="(\w+)">#is', '[list=\\1]', $html);	// <ol ...> to [list=...]
-	$html = preg_replace('#<ol\s+style=".*?decimal">#is', '[list=1]', $html);	//detect <ol style="list-style-type: decimal">
+	// list
+	$html = preg_replace(
+		array('#<ul\s.*?>#is', '#<ol\s+?type="(\w+)">#is', '#<ol\s+?style=".*?decimal">#is', '#<li\s.*?>#is'),
+		array('[list]', '[list=\\1]', '[list=1]', '[*]'),
+		$html
+	);
+
 	$html = preg_replace('#<p\s.*?>#is', "\n\n", $html);	// <p ...>
-	$html = preg_replace('#<li\s.*?>#is', '[*]', $html);	// <li ...>
 
 	// br2nl
-	$html = preg_replace('#<br ?/?>#is', "\n", $html);	
+	$html = preg_replace('#<br.*?>#is', "\n", $html);	
 
-/*	Not working, need to preview first then the quote's OK.
-// TODO: need to hack preview code
-	// process phpbb.com <blockquote>...<cite>@somebody wrote:</cite>...</blockquote>
-	if (preg_match_all('#<blockquote.+?>(?:<cite>(.*?)</cite>)?(.*?)</blockquote>#is', $html, $tag, PREG_PATTERN_ORDER))
-	{
-		$i = 0;
-		foreach ($tag[0] as $not_used => $q_tag)
-		{
-			$wrote = str_replace(' wrote:', '', $tag[1][$i]);
+	// strip in-line script/style
+	$html = preg_replace('#<(script|style).*?\\1>#is', '', $html);	
 
-			if (empty($wrote))	// [quote]text[/quote]
-			{
-				$bbcode = '[quote]' . $tag[2][$i] . '[/quote]';
-			}
-			else
-			{
-				$bbcode = '[quote="' . $wrote . '"]' . $tag[2][$i] . '[/quote]';
-			}
-
-			$html = str_replace($q_tag, $bbcode, $html);
-			$i++;
-		}
-	}
-*/
 	// apply custom html filters
 	foreach ($html_filter as $filter)
 	{
-		if (!empty($filter))
+		if (!empty($filter[0]))
 		{
 			$html = preg_replace($filter[0], $filter[1], $html);
 		}
 	}
 	
+	// process phpbb.com <blockquote>...<cite>@somebody wrote:</cite>...</blockquote>
+	if (preg_match_all('#<blockquote.+?>(?:<cite>(.*?)</cite>)?(.*?)</blockquote>#is', $html, $tag, PREG_PATTERN_ORDER))
+	{
+		$i = 0;
+		$bbcode = array();
+		foreach ($tag[0] as $not_used)
+		{
+			$wrote = trim(str_replace(' wrote:', '', $tag[1][$i]));
+
+			$bbcode[] = (!empty($wrote)) ? '[quote="' . $wrote . '"]' . $tag[2][$i] . '[/quote]' : '[quote]' . $tag[2][$i] . '[/quote]';
+
+			$i++;
+		}
+
+		$html = str_replace($tag[0], $bbcode, $html);
+	}
+
 	// process <img> tags
-	if (preg_match_all('#<img[^>]*(?:src="(http[^"]+\.(?:gif|jp[2g]|png|xbm))).+?>#is', $html, $tag, PREG_PATTERN_ORDER))
+	if (preg_match_all('#<img[^>]*(?:src="(http[^"]+\.(?:gif|jp[2g|eg]|png|xbm))).+?>#is', $html, $tag, PREG_PATTERN_ORDER))
 	{
 		global $config;
 
 		$i = 0;
-		foreach ($tag[0] as $not_used => $img_tag)
+		$bbcode = array();
+		foreach ($tag[0] as $not_used)
 		{
-			$bbcode = '';
 			$url = fix_url($tag[1][$i]);
 
 			if ($url)
 			{
-				$bbcode = '[img]' . $url . '[/img]';
+				$bbcode[] = '[img]' . $url . '[/img]';
 				// Note: This is from function bbcode_img()
 				// if the embeded image exceeds limits, return $url
 				if (($config['max_post_img_height'] || $config['max_post_img_width']) && ini_get('allow_url_fopen'))
@@ -845,46 +945,54 @@ function html2bb(&$html, $html_filter = array())
 						if ($config['max_post_img_height'] && $config['max_post_img_height'] < $stats[1]
 							 || $config['max_post_img_width'] && $config['max_post_img_width'] < $stats[0])
 						{
-							$bbcode = $url;
+							$bbcode[] = $url;
 						}
 					}
 				}
 			}
 
-			$html = str_replace($img_tag, $bbcode, $html);
 			$i++;
 		}
+
+		$html = str_replace($tag[0], $bbcode, $html);
+	}
+	// cleanup non-gfx link target
+	else
+	{
+		$html = preg_replace('#<img[^>]*>#is', '', $html);
 	}
 
 	// process <a> tags
-	if (preg_match_all('#<a[^>]*(?:href="(http[^"]+)).+? >(.+?)</a>#is', $html, $tag, PREG_PATTERN_ORDER))
+	if (preg_match_all('#<a[^>]*(?:href="(http[^"]+)").*?>(.+?)</a>#is', $html, $tag, PREG_PATTERN_ORDER))
 	{
 		$i = 0;
-		foreach ($tag[0] as $not_used => $a_tag)
+		$bbcode= array();
+
+		foreach ($tag[0] as $not_used)
 		{
-			$bbcode = '';
 			$url = fix_url($tag[1][$i]);
 
 			if ($url)
 			{
-				$txt = str_replace(array(' ', "\n"), '', $tag[2][$i]);
+				$txt = fix_text($tag[2][$i]);
 
 				if (empty($txt))	// [url]link[/url]
 				{
-					$bbcode = "[url]${url}[/url]";
+					$bbcode[] = "[url]${url}[/url]";
 				}
 				else	// [url=link]text[/url]
 				{
-					$bbcode = "[url=${url}]${txt}[/url]";
+					$bbcode[] = "[url=${url}]${txt}[/url]";
 				}
 			}
 
-			$html = str_replace($a_tag, $bbcode, $html);
 			$i++;
 		}
+
+		$html = str_replace($tag[0], $bbcode, $html);
 	}
 
-	return;
+	return $html;
 }
 
 
