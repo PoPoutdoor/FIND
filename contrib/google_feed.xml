@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="../1.2.6/modx.prosilver.en.xsl"?>
+<!--For security purposes, please check: https
+://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at https://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.phpbb.com/mods/xml/modx-1.2.6.xsd">		
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en">FIND - Google feed support</title>
+		<title lang="zh-TW">綜合新聞匯集 － 谷歌新聞來源支援</title>
+
+		<description lang="en">Extract and format data suitable for post</description>
+		<description lang="zh-TW">提取資料及把內容轉為適合發佈的格式</description>
+
+		<author-notes lang="en">You must have FIND version 1.1.0(BD3) installed and working before installing this mod.</author-notes>
+		<author-notes lang="zh-TW">你必須已有安裝好的 綜合新聞匯集 1.1.0(BD3) 版本 才能夠安裝這個模塊。</author-notes>
+
+		<github><![CDATA[https://github.com/PoPoutdoor/FIND]]></github>
+
+		<author-group>
+			<author>
+				<realname>Plato Leung</realname>
+				<username>PoPoutdoor</username>
+			</author>
+		</author-group>
+
+		<mod-version>1.1.0</mod-version>
+
+		<installation>
+			<level>easy</level>
+			<time>60</time>
+			<target-version>3.0.11</target-version>
+		</installation>
+
+		<history>
+			<entry>
+				<date>2013-09-09</date>
+				<rev-version>1.1.0-BD3</rev-version>
+				<changelog lang="en">
+					<change>Create document</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>創建文件</change>
+				</changelog>
+			</entry>
+		</history>
+
+		<link-group>
+			<link type="parent" href="../install.xml" lang="en">Install FIND</link>
+			<link type="parent" href="../install.xml" lang="zh-TW">安裝綜合新聞匯集外掛</link>
+		</link-group>
+	</header>
+
+	<action-group>
+		<open src="includes/functions_find.php">
+			<edit>
+				<comment lang="en">Lookup feed_id from ACP. Supports multiple feed ids in CSV format</comment>
+				<find>function post_feed( $ids = array() )
+{
+</find>
+				<action type="after-add">	define('GOOGLE', '{feed_id}');
+
+</action>
+			</edit>
+			<edit>
+				<find>
+			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
+</find>
+				<action type="before-add"><![CDATA[
+
+			// Google feed support
+			if (defined('GOOGLE') && !empty($desc))
+			{
+				if (in_array($feed_id, explode(',', GOOGLE)))
+				{
+					// strip first linked-text, this linked item is like media:video
+					if (preg_match('#<a.+?</a>#is', $desc, $tag))
+					{
+						$desc = str_replace($tag[0], '', $desc);
+					}
+					// set first match text as rss:source tag, so we can do filtering later
+					if (preg_match('#<b><font color="\#6f6f6f">(.*?)</font></b>#is', $desc, $tag))
+					{
+						$desc = str_replace($tag[0], '', $desc);
+						if (!isset($post->source))
+						{
+							$post->source = fix_text($tag[1]);
+						}
+					}
+					// strip second linked item, this link is the same as read more link
+					if (preg_match('#<a[^>]*>(.+?)</a>#is', $desc, $tag))
+					{
+						$desc = str_replace($tag[0], '', $desc);
+						//$title = fix_text($tag[1]);
+					}
+					// use our own truncate string
+					$desc = str_replace('&nbsp;<b>...</b>', $user->lang['TRUNCATE'], $desc);
+					// reformat related links
+					if (preg_match_all('#(?:<br /><font size="-1"(?: class="p")?>)?<a href="(.*?)".*?<nobr>(?!<b>)(.*?)(?!</b>)</nobr>(?:</a>(?:&nbsp;-)?)?#is', $desc, $tag, PREG_PATTERN_ORDER))
+					{
+						$i = 0;
+						$replace = array();
+						foreach($tag[0] as $not_used)
+						{
+							$replace[] = (($i) ? ', ' : "\n\n" . $user->lang['RELATED'] . $user->lang['TAB'])
+								 . '[url=' . fix_url($tag[1][$i]) . ']' . fix_text($tag[2][$i]) . '[/url]';
+							$i++;
+						}
+
+						$desc = str_replace($tag[0], $replace, $desc);
+					}
+					// other related links
+					if (preg_match('#<a[^>]*href="(.*?)"><nobr><b>(.+?)</b></nobr></a>#is', $desc, $tag))
+					{
+						$desc = str_replace($tag[0], ", [url=" . fix_url($tag[1]) . ']' . fix_text($tag[2]) . '[/url]', $desc);
+					}
+					// join all related links into one line
+					$desc = strip_tags($desc);
+				}
+			}
+]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

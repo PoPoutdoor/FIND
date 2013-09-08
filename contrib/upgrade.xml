@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="../1.2.6/modx.prosilver.en.xsl"?>
+<!--For security purposes, please check: https
+://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at https://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.phpbb.com/mods/xml/modx-1.2.6.xsd">		
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en">FIND - Upgrade Instructions</title>
+		<title lang="zh-TW">綜合新聞匯集 － 更新指示</title>
+
+		<description lang="en">Upgrade to FIND v1.1.0 (BD3)</description>
+		<description lang="zh-TW">更新到綜合新聞匯集 1.1.0 版本 (BD3)</description>
+
+		<author-notes lang="en">You must have FIND version less than 1.1.0 installed and working before installing this mod.
+		
+	1. UnInstall last version from ACP module first!
+
+	2. If you renamed rss_import.php, please use the renamed file name for deletion below.
+	
+	3. If you customized find_posting.php, make sure you have a backup copy for review after upgrade.
+	
+	Read contrib/readme.html before proceed, very important message there!
+
+		</author-notes>
+		<author-notes lang="zh-TW">你必須已有安裝好的 綜合新聞匯集 1.1.0 以下版本 才能夠使用這個更新指示。</author-notes>
+
+		<github><![CDATA[https://github.com/PoPoutdoor/FIND]]></github>
+
+		<author-group>
+			<author>
+				<realname>Plato Leung</realname>
+				<username>PoPoutdoor</username>
+			</author>
+		</author-group>
+
+		<mod-version>1.1.0</mod-version>
+
+		<installation>
+			<level>easy</level>
+			<time>180</time>
+			<target-version>3.0.11</target-version>
+		</installation>
+
+		<history>
+			<entry>
+				<date>2013-09-09</date>
+				<rev-version>1.1.0-BD3</rev-version>
+				<changelog lang="en">
+					<change>Create document</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>創建文件</change>
+				</changelog>
+			</entry>
+		</history>
+
+		<link-group>
+			<link type="parent" href="../install.xml" lang="en">Install FIND</link>
+			<link type="parent" href="../install.xml" lang="zh-TW">安裝綜合新聞匯集外掛</link>
+			<link type="text" href="./revert_db.txt" lang="en">Instructions to restore database to last version</link>
+			<link type="text" href="./revert_db.txt" lang="zh-TW">還原數據庫(英語)</link>
+		</link-group>
+	</header>
+
+	<action-group>
+		<sql dbms="mysql"><![CDATA[--
+-- create copy of original table
+--
+
+CREATE TABLE IF NOT EXISTS `phpbb_find` LIKE `phpbb_xmlfeeds`;
+INSERT INTO `phpbb_find` SELECT * FROM `phpbb_xmlfeeds`;
+
+--
+-- convert to new structure
+--
+
+ALTER TABLE `phpbb_find` CHANGE url feed_url varchar(255) character set utf8 collate utf8_bin NOT NULL AFTER feed_id;
+ALTER TABLE `phpbb_find` CHANGE status feed_state tinyint(1) unsigned NOT NULL default 0 AFTER feed_url;
+ALTER TABLE `phpbb_find` CHANGE last_import last_update int(11) unsigned NOT NULL default 0 AFTER bot_id;
+ALTER TABLE `phpbb_find` CHANGE feedname feed_name varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL AFTER last_update;
+ALTER TABLE `phpbb_find` CHANGE feedname_topic feed_name_subject tinyint(1) unsigned NOT NULL default 0 AFTER feed_name;
+ALTER TABLE `phpbb_find` CHANGE topic_ttl post_mode tinyint(2) unsigned NOT NULL default 1 AFTER feed_name_subject;
+ALTER TABLE `phpbb_find` CHANGE post_items max_articles tinyint(2) unsigned NOT NULL default 10 AFTER post_mode;
+ALTER TABLE `phpbb_find` CHANGE post_contents max_contents smallint(3) unsigned NOT NULL default 0 AFTER max_articles;
+ALTER TABLE `phpbb_find` CHANGE inc_channel feed_info tinyint(1) unsigned NOT NULL default 1 AFTER max_contents;
+ALTER TABLE `phpbb_find` CHANGE inc_cat article_cat tinyint(1) unsigned NOT NULL default 1 AFTER feed_info;
+ALTER TABLE `phpbb_find` CHANGE feed_html article_html tinyint(1) unsigned NOT NULL default 1 AFTER article_cat;
+ALTER TABLE `phpbb_find` add feed_filters longtext character set utf8 collate utf8_unicode_ci default NULL AFTER article_html;
+ALTER TABLE `phpbb_find` DROP encodings;
+]]></sql>
+		<sql dbms="mysql"><![CDATA[--
+-- remove origional table
+--
+
+DROP TABLE phpbb_xmlfeeds;
+
+--
+-- Done
+--]]></sql>
+
+		<copy>
+			<file from="root/adm/style/acp_find.html" to="adm/style/acp_find.html" />
+			<file from="root/includes/functions_find.php" to="includes/functions_find.php" />
+			<file from="root/includes/acp/acp_find.php" to="includes/acp/acp_find.php" />
+			<file from="root/includes/acp/info/acp_find.php" to="includes/acp/info/acp_find.php" />
+			<file from="root/language/en/find.php" to="language/en/find.php" />
+			<file from="root/language/en/find_posting.php" to="language/en/find_posting.php" />
+			<file from="root/language/en/acp/find.php" to="language/en/acp/find.php" />
+			<file from="root/feed_import.php" to="feed_import.php" />
+		</copy>
+
+		<delete>
+			<file name="includes/rss_parser.php" />
+			<file name="rss_import.php" />
+		</delete>
+		
+		<open src="includes/constants.php">
+			<edit>
+				<comment lang="en">update to new data table</comment>
+				<find>define('FIND_TABLE',		$table_prefix . 'xmlfeeds');</find>
+				<action type="replace-with">define('FIND_TABLE',				$table_prefix . 'find');</action>
+			</edit>
+		</open>
+
+		<diy-instructions lang="en">1. If you have set content filter, remove "define('FIND_STRIP'..." line from includes/constants.php
+		
+2. Install the ACP module
+
+	a. Login ACP
+	b. Go to: SYSTEM - MODULE MANAGEMENT -> acp -> general -> Board configuration page, select "FIND Settings [acp_find]" and click Add module.
+	c. Enable the module after the page refreshed.
+	d. Purge the cache.
+
+3. Initial setup
+
+	Follow instructions from contrib/setup.txt
+
+4. You can manage your feeds from GENERAL - BOARD CONFIGURATION -> FIND settings by now.
+
+5. Update your crontab to reflect the filename changes.
+
+6. Read instructions from contrib/customize.txt if you like to customize this mod.
+
+
+Check post at http://www.phpbb.com/community/viewtopic.php?p=11231965#p11231965 for updates.
+</diy-instructions>
+	</action-group>
+</mod>

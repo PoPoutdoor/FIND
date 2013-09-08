@@ -1,4 +1,4 @@
-Customize v1.1.0
+Customize v1.1.0(BD3)
 
 
 A. Change posting bot keyword
@@ -19,7 +19,7 @@ B. Change appearance of imported post
 	language/{lang}/find_posting.php.
 
 	If you create custom BBCode for Horizontal line (HR) and Tab (TAB), update related entries with
-	your BBCode will do the trick.
+	your BBCode to used them for the post.
 
 	Note: If you mess up with language file, your phpBB will cease functioning!
 
@@ -34,18 +34,17 @@ C. Add topic icon
 		ADD AFTER
 			define('FIND_ICON', 6);   // this is the find post icon_id
 
-	Note: Checkup the id number from ACP, then change '6' with the icon ID of your choice.
+	Note: Checkup the id number from ACP -> POSTING -> Topic icons, then change '6' with the icon ID of your choice.
 
 
 D. Add custom filters
 
-	You can set custom filter for each feed from ACP now!
+	You can set custom filter for each feed from ACP now! 
 
-	Note: To use html filter, enable ACP feed html setting first!
+	Note: Knowledge of PCRE required to build the filter rules.
 
 
 E. Change "Read More" text link to link (Source: [url]http://the_source/link[/url]) only.
-
 
 	Edit language/en/find_posting.php
 
@@ -56,10 +55,16 @@ E. Change "Read More" text link to link (Source: [url]http://the_source/link[/ur
 			'BB_READ_MORE'   => "\n" . 'Source: [url]%s[/url]' . "\n\n",
 
 
-F. Additional Atom feed support
+F. XML namespace support
 
-	Namespace support been added, starting from this version. Check the limited media:thumbnail code under 
-	'//--- namespace support ---//' from includes/functions_find.php
+	Namespace support been added from this version.
+	
+	Study media:thumbnail code under 
 
+		'//--- namespace support ---//'
+
+	from includes/functions_find.php
+
+	Feel free to add code for namespace of your choice and share your work with us!
 
 

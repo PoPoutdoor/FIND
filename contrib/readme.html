@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>readme.html v1.1.0(BTS)</TITLE>
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20130904;1561800">
+	<STYLE TYPE="text/css">
+	<!--
+		body { margin: 0 2cm 0 2cm }
+		P { margin-bottom: 0.21cm }
+		H3.western { font-family: "Albany", sans-serif }
+		H3.cjk { font-family: "AR PL UMing TW" }
+		H3.ctl { font-family: "Lohit Hindi" }
+		H4.western { font-family: "Albany", sans-serif; font-size: 11pt; font-style: italic }
+		H4.cjk { font-family: "AR PL UMing TW"; font-size: 11pt; font-style: italic }
+		H4.ctl { font-family: "Lohit Hindi"; font-size: 11pt; font-style: italic }
+		A:link { so-language: zxx }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="zh-HK" DIR="LTR">
+<DIV TYPE=HEADER>
+	<P STYLE="margin-bottom: 0.5cm"><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-US">readme.html
+	v1.1.0(BD3)</SPAN></FONT></FONT></P>
+</DIV>
+<H3 CLASS="cjk"><FONT FACE="Albany, sans-serif"><SPAN LANG="en-US">About
+this mod</SPAN></FONT></H3>
+<P><FONT FACE="Arial, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">FIND
+is a mod for phpbb3, which import ATOM/RSS news feed into your forum.<BR><BR>
+Since phpbb3 doesn't provide true cron service, OS scheduler(*nix: cron)
+support is required for automatic feed import.<BR><BR>
+This mod functions without cron support, but not practical for daily use.</SPAN></FONT></FONT></P>
+<H4 CLASS="cjk"><FONT FACE="Albany, sans-serif"><SPAN LANG="en-US">Prerequisite</SPAN></FONT></H4>
+<P><FONT FACE="Arial, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">Experienced
+phpbb site admin with LAMP server (other OSes: web/database servers
+and php) knowledge for initial setup.<BR><BR>Check list:</SPAN></FONT></FONT></P>
+<P><FONT FACE="DejaVu Sans, sans-serif"><FONT SIZE=2><SPAN LANG="en-US"><I>
+<UL>
+	<LI>database server: MySQL (versions as required for phpBB3 installation)
+	<LI>web server: (software and versions as required for phpBB3 installation)
+	<LI>php:	5.3 or later, with settings 'allow_url_fopen = on' AND SimpleXML
+	support.
+	<LI>OS scheduler: with ability to create/access/execute schedule jobs. For
+	*nix, able to execute `crontab -e` either by console or by wrapper tools.
+</UL>
+</I></SPAN></FONT></FONT></P>
+<H4 CLASS="cjk"><FONT FACE="Albany, sans-serif"><SPAN LANG="en-US">Warning</SPAN></FONT></H4>
+<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">Using
+this mod in some part of the world may be illegal, the author assumed
+you understand and take full responsibility of the legal risk by
+applying this mod.<BR><BR>
+Check you local law for copyright related rules, DO NOT install this mod if
+you are not sure!</SPAN></FONT></FONT></P>
+<H4 CLASS="cjk"><FONT FACE="Albany, sans-serif"><SPAN LANG="en-US">Mod
+Support</SPAN></FONT></H4>
+<OL>
+	<LI><P><FONT FACE="Luxi Sans, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">Installation
+	and initial setup issue</SPAN></FONT></FONT></P>
+	<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">
+	<UL>
+		<LI>Standalone and VPS Linux server related issue is supported by the author.
+		<LI>Shared hosting server related issue should be supported by your service
+		provider. Please ask if you need paid support.
+		<LI>Other server environments may be supported by the author or other mod
+		users. Please ask if you need paid support.
+		<LI>Not server related issue may be supported by the author or phpbb community.
+	</UL>
+	</SPAN></FONT></FONT></P>
+<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">You
+have to provide useful info such as the OS name/version, the
+procedures to reproduced, info of other mods, etc.</SPAN></FONT></FONT></P>
+	<LI><P><FONT FACE="Luxi Sans, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">Source
+	related issue</SPAN></FONT></FONT></P>
+	<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">
+	<UL>
+		<LI>Check your feed with <A HREF="http://validator.w3.org/feed">W3C Feed
+		Validation Service</A> first! Free support on validated feed only.<BR>
+		Please ask if you need paid support for not validated feed source.
+		<LI>You have to provide the link to W3C Feed Validation Service result
+		page, with the procedures to reproduced the issue.
+		<LI>Additional info such as phpBB error message, web server error log, extracts of
+		phpinfo page on ACP, info of other installed mods, etc.
+	</UL>
+	</SPAN></FONT></FONT></P>
+	<LI><P><FONT FACE="Luxi Sans, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">Earn
+	your free support</SPAN></FONT></FONT></P>
+<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">To
+put it simple: free means you do your jobs (by providing useful and
+meaningful info) to trade for the author's support!
+<blockquote><em>I port this mod because I need the features before I upgrade my phpbb
+2.0.x.<BR>I release this mod because I think many others might need this. If you
+think this mod is useful and like to see it gets improved, you have
+to post every piece of needed information stated above, these help me
+or others to follow your issue.</em></blockquote>
+Support priority based on my free time and the provided info quality.<BR><BR>
+Tips:</SPAN></FONT></FONT></P>
+	<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">
+	<UL>
+		<LI>Don't copy &amp; post everything on screen! Try your best to pick some
+		lines you think related to your problem.
+		<LI>Post with text like &quot;Not working&quot; is neither useful nor
+		meaningful.
+		<LI>Paid support is available for trading of the author's time with your's
+		to solve your problem.
+		<LI>If I don't answer your post in time, please wait.
+	</UL>
+	</SPAN></FONT></FONT></P>
+	<LI><P><FONT FACE="Luxi Sans, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">Suggestion
+	and features requests</SPAN></FONT></FONT></P>
+<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">Current
+code completed with features for my needs and the core should be keep
+as simple as possible.<BR><BR>
+Suggestions to improve this mod are welcome!<BR><BR>
+Please post your feature request and let me think about it. If I don't buy
+it, I will assist anyone who is going to make it.</SPAN></FONT></FONT></P>
+</OL>
+<H4 CLASS="cjk"><FONT FACE="Albany, sans-serif"><SPAN LANG="en-US">Donation and paid support</SPAN></FONT></H4>
+<P><FONT FACE="Bitstream Vera Sans Mono, monospace"><FONT SIZE=2><SPAN LANG="en-US">
+If you like this mod and want to express your thanks and support, 
+<A HREF="http://pop-guide.dyndns.org/donate.html">click here</A> to process your donation.<BR><BR>
+For donation or paid support, please contact me from phpbb by PM first!</SPAN></FONT></FONT></P><BR><BR>
+</BODY>
+</HTML>

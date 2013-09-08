@@ -15,14 +15,10 @@
 <!-- INCLUDE overall_header.html -->
 
 <a name="maincontent"></a>
-
 <!-- IF S_EDIT_FEED -->
-
 	<a href="{U_BACK}" style="float: {S_CONTENT_FLOW_END};">&laquo; {L_BACK}</a>
-
 	<h1>{L_TITLE}</h1>
-	<p>{L_EDIT_FEED_EXPLAIN}</p>
-
+	<p>{L_FEED_EDIT_EXPLAIN}</p>
 	<!-- IF S_ERROR -->
 		<div class="errorbox">
 			<h3>{L_WARNING}</h3>
@@ -35,7 +31,6 @@
 			<p>{PROMPT_MSG}</p>
 		</div>
 	<!-- ENDIF -->
-
 	<form id="acp_find" method="post" action="{U_ACTION}">
 	<fieldset>
 		<legend>{L_TITLE}</legend>
@@ -43,11 +38,7 @@
 			<dt><label for="feed_url">{L_FEED_URL}</label><br /><span>{L_FEED_URL_EXPLAIN}</span></dt>
 			<dd>
 				<input name="feed_url" type="text" id="feed_url" value="{FEED_URL}" size="40" maxlength="255" />
-	<!-- IF S_CHECKED -->
-				&nbsp;<input type="checkbox" class="radio" id="feed_check" name="feed_check" value="{S_CHECK}" />&nbsp;<span class="small">{L_FEED_RECHECK}</span>
-	<!-- ELSE -->
-				<input type="hidden" id="feed_check" name="feed_check" value="1" />
-	<!-- ENDIF -->
+	<!-- IF S_CHECKED --><br /><input type="checkbox" class="radio" id="feed_check" name="feed_check" value="{S_CHECK}" />&nbsp;{L_FEED_RECHECK}<!-- ELSE -->	<input type="hidden" id="feed_check" name="feed_check" value="1" /><!-- ENDIF -->
 			</dd>
 		</dl>
 	</fieldset>
@@ -63,10 +54,12 @@
 			<dt><label for="feed_name">{L_FEED_NAME}</label><br /><span>{L_FEED_NAME_EXPLAIN}</span></dt>
 			<dd><input name="feed_name" type="text" id="feed_name" value="{FEED_NAME}" size="40" maxlength="255" /></dd>
 		</dl>
+		<!-- BEGIN properties -->
 		<dl>
-			<dt><label for="feed_name_subject">{L_FEED_NAME_SUBJECT}</label><br /><span>{L_FEED_NAME_SUBJECT_EXPLAIN}</span></dt>
-			<dd>{S_FEEDNAME}</dd>
+			<dt><label for="{properties.KEY}">{properties.TYPE}</label><br /><span>{properties.TYPE_EXPLAIN}</span></dt>
+			<dd>{properties.S_TYPE}</dd>
 		</dl>
+		<!-- END properties -->
 		<dl>
 			<dt><label for="max_articles">{L_MAX_ARTICLES}</label><br /><span>{L_MAX_ARTICLES_EXPLAIN}</span></dt>
 			<dd><input name="max_articles" type="text" id="max_articles" value="{MAX_ARTICLES}" maxlength="255" /></dd>
@@ -74,18 +67,6 @@
 		<dl>
 			<dt><label for="max_contents">{L_MAX_CONTENTS}</label><br /><span>{L_MAX_CONTENTS_EXPLAIN}</span></dt>
 			<dd><input name="max_contents" type="text" id="max_contents" value="{MAX_CONTENTS}" maxlength="255" /></dd>
-		</dl>
-		<dl>
-			<dt><label for="feed_info">{L_FEED_INFO}</label><br /><span>{L_FEED_INFO_EXPLAIN}</span></dt>
-			<dd>{S_INFO}</dd>
-		</dl>
-		<dl>
-			<dt><label for="article_cat">{L_ARTICLE_CAT}</label><br /><span>{L_ARTICLE_CAT_EXPLAIN}</span></dt>
-			<dd>{S_CAT}</dd>
-		</dl>
-		<dl>
-			<dt><label for="article_html">{L_ARTICLE_HTML}</label><br /><span>{L_ARTICLE_HTML_EXPLAIN}</span></dt>
-			<dd>{S_HTML}</dd>
 		</dl>
 	</fieldset>
 	<fieldset>
@@ -98,23 +79,58 @@
 	<fieldset>
 		<legend>{L_FILTER}</legend>
 		<dl><span>{L_FILTER_EXPLAIN}</span></dl>
+		<script language="Javascript" type="text/javascript">
+			function addInput(self)
+			{
+				var key = self.parentNode.parentNode.id;
+				var newDD = document.createElement('dd');
+				newDD.innerHTML = '<input name="' + key + '_search[]" type="text" id="' + key + '_search[]" value="" size="40" maxlength="255" /><br /><input name="' + key + '_replace[]" type="text" id="' + key + '_replace[]" value="" size="34" maxlength="255" />&nbsp;&nbsp;<a href="#" onClick="delInput(this); return false;" onMouseOver="highlight(this);" onMouseOut="normal(this);">&#10754;</a>&nbsp;&nbsp;<a href="#" onClick="addInput(this); return false;">&#10753;</a>';
+				self.parentNode.id = 'curDD';
+				var refNode = document.getElementById('curDD');
+				refNode.parentNode.insertBefore(newDD, refNode.nextSibling);
+				refNode.attributes.removeNamedItem('id');
+			}
+			
+			function delInput(self)
+			{
+				if(confirm('{L_FILTER_DEL}'))
+				{
+					var rmNode = self.parentNode;
+					rmNode.parentNode.removeChild(rmNode);
+				}
+			}
+			
+			function clearInput(self)
+			{
+				if(confirm('{L_FILTER_RST}'))
+				{
+					var key = self.parentNode.parentNode.id;
+					self.parentNode.innerHTML = '<input name="' + key + '_search[]" type="text" id="' + key + '_search[]" value="" size="40" maxlength="255" /><br /><input name="' + key + '_replace[]" type="text" id="' + key + '_replace[]" value="" size="34" maxlength="255" />&nbsp;&nbsp;<a href="#" onClick="clearInput(this); return false;" onMouseOver="highlight(this);" onMouseOut="normal(this);">&#10754;</a>&nbsp;&nbsp;<a href="#" onClick="addInput(this); return false;">&#10753;</a>';
+				}
+			}
+			
+			function highlight(self)
+			{
+				self.parentNode.style.border = 'thin solid #FF0000';
+			}
+
+			function normal(self)
+			{
+				var tag = self.parentNode;
+				tag.attributes.removeNamedItem('style');
+			}
+		</script>
 		<!-- BEGIN filters -->
-		<dl>
+		<dl id="{filters.KEY}">
 			<dt><label for="{filters.KEY}_filter">{filters.TYPE}</label><br /><span>{filters.TYPE_EXPLAIN}</span></dt>
 			<!-- BEGIN entries -->
 			<dd>
-				<input name="{filters.KEY}_search[]" type="text" id="{filters.KEY}_search[]" value="{filters.entries.KEY_S}" size="40" maxlength="255" /><br />
-				<input name="{filters.KEY}_replace[]" type="text" id="{filters.KEY}_replace[]" value="{filters.entries.KEY_R}" size="40" maxlength="255" />
+				<input name="{filters.KEY}_search[]" type="text" id="{filters.KEY}_search[]" value="{filters.entries.KEY_S}" size="40" maxlength="255" />
+				<!-- IF filters.S_SHOW --><br /><input name="{filters.KEY}_replace[]" type="text" id="{filters.KEY}_replace[]" value="{filters.entries.KEY_R}" size="34" maxlength="255" />&nbsp;&nbsp;<a href="#" onClick="<!-- IF filters.entries.S_CODE -->del<!-- ELSE -->clear<!-- ENDIF -->Input(this); return false;" onMouseOver="highlight(this);" onMouseOut="normal(this);">&#10754;</a>&nbsp;&nbsp;<a href="#" onClick="addInput(this); return false;">&#10753;</a><!-- ENDIF -->
 			</dd>
 			<!-- END entries -->
 		</dl>
 		<!-- END filters -->
-		<dl>
-			<dt><label for="src_filter">{L_SRC_FILTER}</label><br /><span>{L_SRC_FILTER_EXPLAIN}</span></dt>
-			<dd>
-				<input name="src_filter" type="text" id="src_filter" value="{SKIP_SRC}" size="40" maxlength="255" />
-			</dd>
-		</dl>
 	</fieldset>
 	<!-- ENDIF -->
 	<fieldset>
@@ -127,15 +143,14 @@
 		<p class="submit-buttons">
 			<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
 			<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+			<input type="hidden" id="feed_state" name="feed_state" value="{FEED_STATE}" />
 		</p>
 		{S_FORM_TOKEN}
 	</fieldset>
 	</form>
 <!-- ELSE -->
-
 	<h1>{L_FIND}</h1>
 	<p>{L_FIND_EXPLAIN}</p>
-
 	<form id="acp_find" method="post" action="{U_ACTION}">
 	<table cellspacing="1">
 	<thead>
@@ -172,11 +187,9 @@
 	<!-- ENDIF -->
 	</tbody>
 	</table>
-
 	<fieldset class="quick" style="float: {S_CONTENT_FLOW_BEGIN};">
-		<input class="button2" name="add" type="submit" value="{L_ADD_FEED}" />
+		<input class="button2" name="add" type="submit" value="{L_FEED_ADD}" />
 	</fieldset>
-
 	<!-- IF not S_NO_ITEMS -->
 	<fieldset class="quick" style="float: {S_CONTENT_FLOW_END};">
 		<select name="action">{S_FEED_OPTIONS}</select>
@@ -186,7 +199,9 @@
 	</fieldset>
 	<!-- ENDIF -->
 	</form>
-
 <!-- ENDIF -->
+
+<!--// FIND by PoPoutdoor //-->
+{L_MOD_INFO}
 
 <!-- INCLUDE overall_footer.html -->

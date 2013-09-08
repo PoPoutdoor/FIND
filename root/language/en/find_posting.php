@@ -8,7 +8,8 @@
 * @copyright (c) 2008-2013 PoPoutdoor
 * @license http://opensource.org/licenses/GPL-2.0
 *
-* @language Traditional Chinese [zh_cmn_hant]
+* @language English [en]
+* @translator (c) ( PoPoutdoor )
 *
 */
 
@@ -38,26 +39,22 @@ if (empty($lang) || !is_array($lang))
 // in a url you again do not need to specify an order e.g., 'Click %sHERE%s' is fine
 
 $lang = array_merge($lang, array(
-	'BB_AUTHOR'			=> '由 [color=brown]%s[/color] 發表' . "\n" ,
-	'BB_CAT'				=> '[size=125]分類：[color=darkred]%s[/color][/size]' . "\n",
-	'BB_COPYRIGHT'		=> '[size=85]版權訊息：[color=#808000]%s[/color][/size]' . "\n",
-	'BB_POST_SRC'		=> '來自 [color=green]%s[/color]' . "\n",
-	'BB_POST_TS'		=> '於 [color=green]%s[/color] 發佈' . "\n",
+	'BB_AUTHOR'			=> 'By [color=brown]%s[/color]' . "\n" ,
+	'BB_CAT'				=> '[size=125]Category: [color=darkred]%s[/color][/size]' . "\n",
+	'BB_COPYRIGHT'		=> '[size=85][color=#808000]%s[/color][/size]' . "\n",
+	'BB_POST_SRC'		=> 'From: [color=green]%s[/color]' . "\n",
+	'BB_POST_TS'		=> 'Post at: [color=green]%s[/color]' . "\n",
 	'BB_SOURCE_TITLE'	=> '[size=125]%s[/size]',
 	'BB_SOURCE_DESC'	=> '[size=85][color=indigo]%s[/color][/size]' . "\n",
-	'BB_SOURCE_DATE'	=> '消息於 [color=green]%s[/color] 更新' . "\n",
+	'BB_SOURCE_DATE'	=> 'Updated at: [color=green]%s[/color]' . "\n",
 	'BB_TITLE'			=> '[color=darkblue][size=150]%s[/size][/color]' . "\n",
 	'BB_URL'				=> '[url=%s]%s[/url]',
-
-	'COMMENTS'	=> '[i]發表意見[/i]' . "\n",
+	'COMMENTS'	=> '[i]Post your comments[/i]' . "\n",
 	'HR'			=> "\n--------\n",	// Horizontal line.
-	'READ_MORE'	=> '[i]閱讀全文[/i]',
-	'RELATED'	=> "\n\n[i]相關文章[/i]",
+	'READ_MORE'	=> '[i]Read more...[/i]',
+	'RELATED'	=> "\n\n[i]Read related[/i]",
 	'TAB'			=> ' - ',	// Tab.
-	'TRUNCATE'	=> '﹍',		// Truncate string.
-	// custom message below
-	'IMG_RESTRICT'	=> "\n" . '[[i]受保護圖象[/i]]' . "\n",
-
+	'TRUNCATE'	=> '...',	// Truncate string.
 ));
 
 ?>

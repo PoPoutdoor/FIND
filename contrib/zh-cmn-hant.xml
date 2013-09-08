@@ -8,13 +8,13 @@
 		<title lang="en">FIND - Traditional Chinese translations and code support</title>
 		<title lang="zh-TW">綜合新聞匯集 － 繁體中文翻譯及支援程式</title>
 
-		<description lang="en">This mod for FIND v1.1.0</description>
-		<description lang="zh-TW">譯文支援 綜合新聞匯集 1.1.0 版本</description>
+		<description lang="en">This mod for FIND v1.1.0 (BD3)</description>
+		<description lang="zh-TW">譯文支援 綜合新聞匯集 1.1.0 版本 (BD3)</description>
 
 		<author-notes lang="en">You have to get FIND v1.1.0 installed and working before installing this mod. If your browser does not support Traditional Chinese, mod instructions with Chinese characters can't be read.</author-notes>
 		<author-notes lang="zh-TW">你必須先安裝好 綜合新聞匯集 1.1.0 版本 才能夠使用這繁體中文支援。</author-notes>
 
-		<github><![CDATA[https://github.com/PoPoutdoor/phpbb3_mods-rss_input]]></github>
+		<github><![CDATA[https://github.com/PoPoutdoor/FIND]]></github>
 
 		<author-group>
 			<author>
@@ -32,6 +32,16 @@
 		</installation>
 
 		<history>
+			<entry>
+				<date>2013-09-09</date>
+				<rev-version>1.1.0-BD3</rev-version>
+				<changelog lang="en">
+					<change>Update zh-cmn-hant.xml</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>更新繁體中文安裝及支援檔案</change>
+				</changelog>
+			</entry>
 			<entry>
 				<date>2013-08-18</date>
 				<rev-version>1.1.0-develop</rev-version>
@@ -79,8 +89,8 @@
 
 		<open src="includes/constants.php">
 			<edit>
-				<comment lang="en">CJK support is detected by the posting bot language.</comment>
-				<comment lang="zh-TW">中日韓支援是取決於發佈機器人語言設定的</comment>
+				<comment lang="en">CJK support is detected by the posting bot language. Multiple language is supported by using CSV format, for example: ‘zh_cmn_hant, zh_cmn_hans‘</comment>
+				<comment lang="zh-TW">中日韓支援是取決於發佈機器人語言設定的。用 CSV 格式就可以支援多語言設定值，例如：‘zh_cmn_hant, zh_cmn_hans‘</comment>
 				<find><![CDATA[define('FIND_BOT_ID', '[FIND Bot]');	// string to identify our posting bot
 ]]></find>
 				<action type="after-add"><![CDATA[define('FIND_CJK', 'zh_cmn_hant');	// the CJK flag, comma delimited string]]></action>
@@ -99,6 +109,93 @@
 	'LOG_FEED_ADDED'	=> '<strong>新增綜合新聞匯集來源：</strong><br />» %s',
 	'LOG_FEED_DELETED'	=> '<strong>刪除綜合新聞匯集來源：</strong><br />» %s',
 	'LOG_FEED_UPDATED'	=> '<strong>更新綜合新聞匯集來源：</strong><br />» %s',
+]]></action>
+			</edit>
+		</open>
+
+		<open src="includes/functions_find.php">
+			<edit>
+				<comment lang="en">Goto last line</comment>
+				<comment lang="zh-TW">前往最後一行</comment>
+				<find><![CDATA[
+?>]]></find>
+				<action type="before-add"><![CDATA[
+/**
+* Fix CJK full-width punct-alpnum spacing
+*
+* utf8 ncr values for CJK full-width symbols:
+*	12288 - 12290, 12298 - 12318
+*	65281 - 65312
+*	65313 - 65338		excludes english capital letters
+*	65339 - 65344
+*	65345 - 65370		excludes english letters
+*	65371 - 65377
+*	65504 - 65510
+*
+*	HK font				37032, 24419, 22487
+*/
+function cjk_tidy($text)
+{
+	// decode first!
+	$text = utf8_decode_ncr($text);
+
+	// Preserve space around [] , for posting with bbcode tags
+	$text = preg_replace('#\] +([[:punct:]])#', ']&#32;\\1', $text);
+	$text = preg_replace('#([[:punct:]]) +\[#', '\\1&#32;[', $text);
+	// encolsed words with spaces
+	$text = preg_replace('#([[:alnum:][:punct:]\-\+]+)#', '&#32;\\1&#32;', $text);
+
+	$text = utf8_encode_ncr($text);
+
+	$text = preg_replace('/(?:(&#[0-9]{5};)(\w+)|(\w+)(&#[0-9]{5};))/', '\\1 \\2', $text);
+	$text = preg_replace('/\]&#32;(&#[0-9]{5};)/', ']\\1', $text);
+	$text = preg_replace('/(&#[0-9]{5};)&#32;\[/', '\\1[', $text);
+	//FIXME:  trim full-width spaces
+	//$text = preg_replace('/^\p{Zs}+/u', '', $text);	// not works
+	//$text = preg_replace('/\p{Zs}+$/u', '', $text);
+
+	// restore space
+	$text = str_replace('&#32;', ' ', $text);
+
+	// process spacings
+	$val = 12287;
+	while ($val <= 12318)
+	{
+		$val++;
+		if ($val > 12290 && $val < 12298)
+		{
+			continue;
+		}
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$val = 65280;
+	while ($val <= 65378)
+	{
+		$val++;
+		if ( ($val > 65312 && $val < 65339) || ($val > 65344 && $val < 65371) )
+		{
+			// skip Full-width letters and part not in range
+			continue;
+		}
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$val = 65503;
+	while ($val <= 65510)
+	{
+		$val++;
+
+		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
+	}
+
+	$text = utf8_decode_ncr($text);
+
+	return $text;
+}
+
 ]]></action>
 			</edit>
 		</open>

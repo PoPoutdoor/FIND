@@ -32,26 +32,33 @@ function post_feed( $ids = array() )
 	// This pass local vars to called functions
 	global $is_cjk, $html_filter, $text_filter, $url_filter;
 
+	// init return messages
+	$msg = array('ok' => '', 'skip' => '', 'err' => '');
+
 	$user->add_lang('find');
 
 	if (!function_exists('simplexml_load_file') || !ini_get('allow_url_fopen'))
 	{
-		trigger_error($user->lang['NO_PHP_SUPPORT']);
+		$msg['err'][] = $user->lang['NO_PHP_SUPPORT'];
+		return $msg;
 	}
 
 	if (empty($ids))
 	{
-		trigger_error('NO_IDS');
+		$msg['err'][] = $user->lang['NO_IDS'];
+		return $msg;
+	}
+
+	// current custom filter keys
+	$filter_keys = array('URL', 'TEXT', 'HTML', 'SRC');
+	// optional CJK support
+	$is_cjk = false;
+	if (defined('FIND_CJK') && function_exists('cjk_tidy'))
+	{
+		$cjk_ary = explode(',', FIND_CJK);
 	}
 
 	$sql_ids = (sizeof($ids) > 1) ? ' IN (' . implode(",", $ids) . ')' : ' = ' . implode(",", $ids);
-
-	$is_cjk = false;
-	// current custom filter keys
-	$filter_keys = array('URL', 'TEXT', 'HTML');
-	// init return messages
-	$msg = array('ok' => '', 'skip' => '', 'err' => '');
-
 	$sql = 'SELECT f.*, u.user_colour, u.user_lang, b.bot_active, b.bot_name, b.bot_ip, n.forum_name
 		FROM ' . FIND_TABLE . ' f, '  . USERS_TABLE . ' u, ' . BOTS_TABLE . ' b,' . FORUMS_TABLE . " n 
 		WHERE f.feed_id $sql_ids
@@ -81,10 +88,9 @@ function post_feed( $ids = array() )
 		}
 
 		// Set CJK flag by bot language
-		if (defined('FIND_CJK') && function_exists('cjk_tidy'))
+		if (defined('FIND_CJK') && isset($cjk_ary))
 		{
-			$ary = explode(',', FIND_CJK);
-			$is_cjk = (in_array($row['user_lang'] , $ary)) ? true : false;
+			$is_cjk = (in_array($row['user_lang'] , $cjk_ary)) ? true : false;
 		}
 
 		// prepare some vars
@@ -138,9 +144,9 @@ function post_feed( $ids = array() )
 			$key = strtolower($key);
 
 			${$key . '_filter'} = array();
-			$vals = $feed_filters[${key}];
 
-			if (!is_null($vals))
+			$vals = $feed_filters[${key}];
+			if (!empty($vals))
 			{
 				foreach ($vals as $value)
 				{
@@ -185,7 +191,7 @@ function post_feed( $ids = array() )
 		// source not updated, fetch next feed
 		if ( $feed_ts <= $last_update || $ttl >= $now)
 		{
-			$msg['skip'][] = sprintf($user->lang['FEED_NO_UPDATES'], $feedname);
+			$msg['skip'][] = sprintf($user->lang['FEED_OLD'], $feedname);
 			continue;
 		}
 
@@ -310,8 +316,6 @@ function post_feed( $ids = array() )
 				continue;
 			}
 
-			// Add special raw $desc filter below
-
 			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
 			
 			// prepare message body
@@ -334,19 +338,15 @@ function post_feed( $ids = array() )
 			{
 				$post_source = fix_text($post->source);
 				// Apply source filters
-				foreach ($feed_filters['src'] as $filter)
+				if (!empty($src_filter))
 				{
-					if (!empty($filter))
+					if (preg_match($src_filter[0][0], $post_source))
 					{
-						if (preg_match($filter, $post_source))
+						if ($max_articles)
 						{
-							if ($max_articles)
-							{
-								$max_articles++;
-							}
-							continue 2;
+							$max_articles++;
 						}
-					
+						continue;
 					}
 				}
 
@@ -384,7 +384,7 @@ function post_feed( $ids = array() )
 				$desc = fix_text($desc, false, true);
 
 				// optional CJK support
-				if ($is_cjk && function_exists('cjk_tidy'))
+				if ($is_cjk)
 				{
 					$desc = cjk_tidy($desc);
 					$post_title = cjk_tidy($post_title);
@@ -683,9 +683,7 @@ function xml_fetch_error($http_response_header)
 {
 	global $user;
 
-	$error = '';
-
-	$error .= $user->lang['RESPONSE_HEADER'];
+	$error = $user->lang['RESPONSE_HEADER'];
 
 	foreach($http_response_header as $line)
 	{
@@ -742,14 +740,11 @@ function autopost($forum_id, $forum_name, $mode, $subject, $message, $topic_id =
 		include($phpbb_root_path . 'includes/functions_posting.' . $phpEx);
 	}
 
-
-	// censor_text()
-	$subject = htmlentities($subject);
-//	$subject = censor_text($subject);
-	$message = htmlentities($message);
-//	$message = censor_text($message);
 	// variables to hold the parameters
 	$uid = $bitfield = $options = '';
+
+	$subject = htmlentities($subject);
+	$message = htmlentities($message);
 	generate_text_for_storage($subject, $uid, $bitfield, $options);
 	generate_text_for_storage($message, $uid, $bitfield, $options, true, true, false);
 
@@ -809,9 +804,9 @@ function fix_text($text, $is_html = false, $newline = false)
 		$text = strip_tags($text);
 
 		// Apply custom filters
-		foreach ($text_filter as $filter)
+		if (!empty($text_filter))
 		{
-			if (!empty($filter[0]))
+			foreach ($text_filter as $filter)
 			{
 				$text = preg_replace($filter[0], $filter[1], $text);
 			}
@@ -834,13 +829,13 @@ function fix_text($text, $is_html = false, $newline = false)
 function fix_url($url)
 {
 	global $url_filter;
-	
+
 	$url = htmlspecialchars_decode($url);
-	
+
 	// apply custom filters
-	foreach ($url_filter as $filter)
+	if (!empty($url_filter))
 	{
-		if (!empty($filter[0]))
+		foreach ($url_filter as $filter)
 		{
 			$url = preg_replace($filter[0], $filter[1], $url);
 		}
@@ -854,7 +849,7 @@ function fix_url($url)
 	}
 
 	// validate url is prefixed with (ht|f)tp(s)?
-	if (!preg_match('#^https?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $url))
+	if (!preg_match('#^(ht|f)tps?://(.*?\.)*?[a-z0-9\-]+\.[a-z]{2,4}#i', $url))
 	{
 		return;
 	}
@@ -895,9 +890,9 @@ function html2bb($html)
 	$html = preg_replace('#<(script|style).*?\\1>#is', '', $html);	
 
 	// apply custom html filters
-	foreach ($html_filter as $filter)
+	if (!empty($html_filter))
 	{
-		if (!empty($filter[0]))
+		foreach ($html_filter as $filter)
 		{
 			$html = preg_replace($filter[0], $filter[1], $html);
 		}
@@ -963,7 +958,7 @@ function html2bb($html)
 	}
 
 	// process <a> tags
-	if (preg_match_all('#<a[^>]*(?:href="(http[^"]+)").*?>(.+?)</a>#is', $html, $tag, PREG_PATTERN_ORDER))
+	if (preg_match_all('#<a[^>]*(?:href="((?:ht|f)tp[^"]+)").*?>(.+?)</a>#is', $html, $tag, PREG_PATTERN_ORDER))
 	{
 		$i = 0;
 		$bbcode= array();
@@ -993,83 +988,6 @@ function html2bb($html)
 	}
 
 	return $html;
-}
-
-
-/**
-* Fix CJK full-width punct-alpnum spacing
-*
-* utf8 ncr values for CJK full-width symbols:
-*	12288 - 12290, 12298 - 12318
-*	65281 - 65312
-*	65313 - 65338		excludes english capital letters
-*	65339 - 65344
-*	65345 - 65370		excludes english letters
-*	65371 - 65377
-*	65504 - 65510
-*
-*	HK font				37032, 24419, 22487
-*/
-function cjk_tidy($text)
-{
-	// decode first!
-	$text = utf8_decode_ncr($text);
-
-	// Preserve space around [] , for posting with bbcode tags
-	$text = preg_replace('#\] +([[:punct:]])#', ']&#32;\\1', $text);
-	$text = preg_replace('#([[:punct:]]) +\[#', '\\1&#32;[', $text);
-	// encolsed words with spaces
-	$text = preg_replace('#([[:alnum:][:punct:]\-\+]+)#', '&#32;\\1&#32;', $text);
-
-	$text = utf8_encode_ncr($text);
-
-	$text = preg_replace('/(?:(&#[0-9]{5};)(\w+)|(\w+)(&#[0-9]{5};))/', '\\1 \\2', $text);
-	$text = preg_replace('/\]&#32;(&#[0-9]{5};)/', ']\\1', $text);
-	$text = preg_replace('/(&#[0-9]{5};)&#32;\[/', '\\1[', $text);
-	//FIXME:  trim full-width spaces
-	//$text = preg_replace('/^\p{Zs}+/u', '', $text);	// not works
-	//$text = preg_replace('/\p{Zs}+$/u', '', $text);
-
-	// restore space
-	$text = str_replace('&#32;', ' ', $text);
-
-	// process spacings
-	$val = 12287;
-	while ($val <= 12318)
-	{
-		$val++;
-		if ($val > 12290 && $val < 12298)
-		{
-			continue;
-		}
-
-		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
-	}
-
-	$val = 65280;
-	while ($val <= 65378)
-	{
-		$val++;
-		if ( ($val > 65312 && $val < 65339) || ($val > 65344 && $val < 65371) )
-		{
-			// skip Full-width letters and part not in range
-			continue;
-		}
-
-		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
-	}
-
-	$val = 65503;
-	while ($val <= 65510)
-	{
-		$val++;
-
-		$text = preg_replace(array("/(&#$val;) +/", "/ +(&#$val;)/"), '\\1', $text);
-	}
-
-	$text = utf8_decode_ncr($text);
-
-	return $text;
 }
 
 

@@ -38,26 +38,24 @@ if (empty($lang) || !is_array($lang))
 // in a url you again do not need to specify an order e.g., 'Click %sHERE%s' is fine
 
 $lang = array_merge($lang, array(
+	// Note: text only, no html
+	// error message
 	'BOT_NOT_ACTIVE'	=> '發佈機器人 [%s] 已被停用！',
 	'FEED_FETCH_ERR'	=> "\t[%s] 從 %s 讀取資料失敗！",
-	'FEED_NOT_ACTIVE'	=> '消息來源 [%s] 已被停用！',
-	'FEED_TS_INVALID'	=> '[%s] 來源的更新時間標記錯誤！',
+	'FEED_NOT_ACTIVE'	=> '[%s] 已被停用！',
+	'LINE_COLUMN'		=> "\n\t行: %s\n\t列: %s\n",
 	'NO_IDS'				=> '沒有提供新聞 id。',
-	'NO_PHP_SUPPORT'	=> '網站 php 沒有安裝這個外掛需要使用的 <strong>SimpleXML</strong> 程式庫 或 沒有啟用 <strong>allow_url_fopen</strong>！。',
-	'NO_POST_INFO'		=> '[%s] 新聞訊息缺失！應該至少提供標題或內容其中一個的訊息！',
-
-	// acp add/edit/import error message
+	'NO_PHP_SUPPORT'	=> '網站 php 沒有安裝這個外掛需要使用的 *SimpleXML* 支援 或 沒有啟用 "allow_url_fopen"！。',
 	'RESPONSE_HEADER'	=> "\nHTTP 回應表頭:\n\n",
 	'XML_ERROR'			=> "\nXML 導入錯誤:\n\n\t",
-	'LINE_COLUMN'		=> "\n\t行: %s\n\t列: %s\n",
-
-	// acp import results
-	'FEED_NO_UPDATES'	=> '[%s] 沒有任何更新。',
+	// acp import UI message
 	'FEED_OK'			=> '[%s] 有 %d 篇新文章。',
+	'FEED_OLD'			=> '[%s] 沒有任何更新。',
 	'FEED_SKIP'			=> '[%s] 有 %d 篇過時文章。',
-
-	# feed_import.php messages - text only
-	'HACK_ATTEMPT'	=> '偵測到可疑入侵。' . "\n",
+	'FEED_TS_INVALID'	=> '[%s] 來源的更新時間標記錯誤！',
+	'NO_POST_INFO'		=> '[%s] 新聞訊息缺失！應該至少提供標題或內容其中一個的訊息！',
+	// feed_import.php messages
+	'HACK_ATTEMPT'	=> "偵測到未經授權調用： %s\n",
 	'IMPORT_ERR'	=> "\n引進錯誤：",
 	'NO_PARAMETER'	=> '沒有參數。輸入為： [%s]' . "\n",
 	'PARM_ERR'		=> '參數必需是數字符。' . "\n" . '輸入為： [%s]' . "\n" . '範例： %s?feed=[1,2,...,999 | 999]' . "\n",

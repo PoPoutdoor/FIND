@@ -39,26 +39,24 @@ if (empty($lang) || !is_array($lang))
 // in a url you again do not need to specify an order e.g., 'Click %sHERE%s' is fine
 
 $lang = array_merge($lang, array(
+	// Note: text only, no html
+	// error message
 	'BOT_NOT_ACTIVE'	=> 'Bot [%s] is not activated!',
 	'FEED_FETCH_ERR'	=> "\t[%s] Failed to fetch data from\n\t%s",
-	'FEED_NOT_ACTIVE'	=> 'Feed [%s] is not activated!',
-	'FEED_TS_INVALID'	=> '[%s] The last updated timestamp is not valid!',
+	'FEED_NOT_ACTIVE'	=> '[%s] is not activated!',
+	'LINE_COLUMN'		=> "\n\tLine: %s\n\tColumn: %s\n",
 	'NO_IDS'				=> 'No feed id passed!',
-	'NO_PHP_SUPPORT'	=> 'Installed PHP does not have <strong>SimpleXML</strong> support or <strong>allow_url_fopen</strong> activated!<br />This Mod needs both to work.',
-	'NO_POST_INFO'		=> '[%s] News does not provide title and content!',
-	
-	// acp add/edit/import error message
+	'NO_PHP_SUPPORT'	=> 'Installed PHP does not have "SimpleXML" support or "allow_url_fopen" activated!' ."\n" . 'This Mod needs both to work.',
 	'RESPONSE_HEADER'	=> "\nHTTP response header:\n\n",
 	'XML_ERROR'			=> "\nXML parser error:\n\n\t",
-	'LINE_COLUMN'		=> "\n\tLine: %s\n\tColumn: %s\n",
-
-	// acp import results
-	'FEED_NO_UPDATES'	=> '[%s] processed without updates.',
-	'FEED_OK'		=> '[%s] processed with %d new item(s).',
-	'FEED_SKIP'		=> '[%s] processed with %d old item(s)',
-
-	# feed_import.php messages - text only
-	'HACK_ATTEMPT'	=> 'Suspected hack attempts detected.' . "\n",
+	// acp import UI message
+	'FEED_OK'			=> '[%s] processed with %d new item(s).',
+	'FEED_OLD'			=> '[%s] processed without updates.',
+	'FEED_SKIP'			=> '[%s] processed with %d old item(s)',
+	'FEED_TS_INVALID'	=> '[%s] Feed last updated timestamp is not valid!',
+	'NO_POST_INFO'		=> '[%s] Feed article does not provide title and content!',
+	// feed_import.php messages
+	'HACK_ATTEMPT'	=> "Unauthorised access from: %s\n",
 	'IMPORT_ERR'	=> "\nFeed(s) with error:",
 	'NO_PARAMETER'	=> 'No parameter provided. Input is: [%s]' . "\n",
 	'PARM_ERR'		=> 'Parameter must be numeric string.' . "\n" . 'Input is: [%s]' . "\n" . 'Examples: %s?feed=[1,2,...,999 | 999]' . "\n",

@@ -1,0 +1,28 @@
+Restore data table to last version
+=======================================
+
+Run SQL statement below can restore data table structure to last version from successful upgrade, with data lost for the encodings.
+
+SQL statement
+===============
+
+CREATE TABLE phpbb_xmlfeeds LIKE phpbb_find;
+INSERT INTO phpbb_xmlfeeds SELECT * FROM phpbb_find;
+
+ALTER TABLE `phpbb_xmlfeeds` CHANGE post_forum post_forum mediumint(8) unsigned NOT NULL default '0' AFTER feed_id;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE bot_id bot_id mediumint(8) unsigned NOT NULL default '0' AFTER post_forum;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE feed_state status tinyint(1) unsigned NOT NULL default '0' AFTER bot_id;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE feed_name feedname varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL AFTER status;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE feed_url url varchar(255) character set utf8 collate utf8_bin NOT NULL AFTER feedname;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE last_update last_import int(11) unsigned NOT NULL default '0' AFTER url;
+ALTER TABLE `phpbb_xmlfeeds` ADD encodings varchar(32) character set utf8 collate utf8_bin NOT NULL AFTER last_import;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE post_mode topic_ttl tinyint(2) unsigned NOT NULL default '1' AFTER encodings;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE max_articles post_items tinyint(2) unsigned NOT NULL default '10' AFTER topic_ttl;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE max_contents post_contents smallint(3) unsigned NOT NULL default '0' AFTER post_items;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE feed_name_subject feedname_topic tinyint(1) unsigned NOT NULL default '0' AFTER post_contents;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE feed_info inc_channel tinyint(1) unsigned NOT NULL default '1' AFTER feedname_topic;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE article_cat inc_cat tinyint(1) unsigned NOT NULL default '1' AFTER inc_channel;
+ALTER TABLE `phpbb_xmlfeeds` CHANGE article_html feed_html tinyint(1) unsigned NOT NULL default '1' AFTER inc_cat;
+ALTER TABLE `phpbb_xmlfeeds` DROP feed_filters;
+
+

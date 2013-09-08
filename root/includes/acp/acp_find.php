@@ -47,7 +47,7 @@ class acp_find
 
 		if (!function_exists('simplexml_load_file') || !ini_get('allow_url_fopen'))
 		{
-			trigger_error($user->lang['NO_PHP_SUPPORT']);
+			trigger_error('NO_PHP_SUPPORT');
 		}
 
 		$mark		= request_var('mark', array(0));
@@ -201,7 +201,7 @@ class acp_find
 				$select_id = false;
 			case 'edit':
 				// current custom filter keys
-				$filter_keys = array('URL', 'TEXT', 'HTML');
+				$filter_keys = array('URL', 'TEXT', 'HTML', 'SRC');
 
 				$feed_filters = array();
 
@@ -211,28 +211,39 @@ class acp_find
 					foreach ($filter_keys as $key)
 					{
 						$key = strtolower($key);
-						$search_ary = utf8_normalize_nfc(request_var($key . '_search', array(''), true));
-						$replace_ary = utf8_normalize_nfc(request_var($key . '_replace', array(''), true));
+						$search_ary = request_var($key . '_search', array(''), true);
+						$replace_ary = request_var($key . '_replace', array(''), true);
 
-						$i = 0;
-						foreach ($search_ary as $search)
+						if (empty($search_ary[0]))
 						{
-							$feed_filters[${key}][$i] = array(
-								html_entity_decode($search, ENT_QUOTES, 'UTF-8'),
-								html_entity_decode($replace_ary[$i], ENT_QUOTES, 'UTF-8'),
-							);
-							$i++;
+							$feed_filters[${key}] = array();
+						}
+						else
+						{
+							$i = 0;
+							$search_ary = utf8_normalize_nfc($search_ary);
+							$replace_ary = utf8_normalize_nfc($replace_ary);
+							foreach ($search_ary as $search)
+							{
+								if (!empty($search))
+								{
+									$feed_filters[${key}][$i] = array(
+										html_entity_decode($search, ENT_QUOTES, 'UTF-8'),
+										html_entity_decode($replace_ary[$i], ENT_QUOTES, 'UTF-8'),
+									);
+									$i++;
+								}
+							}
 						}
 					}
-					// skip RSS: source filter
-					$feed_filters['src'][] = utf8_normalize_nfc(request_var('src_filter', '', true));
 
 					// normalise form values
 					$feed_data = array(
-						'feed_url'				=> htmlspecialchars_decode(request_var('feed_url', '')),
-						'post_forum'			=> request_var('post_forum', 0),
-						'bot_id'					=> request_var('bot_id', 0),
-						'feed_name'				=> utf8_normalize_nfc(htmlspecialchars_decode(request_var('feed_name', '', true))),
+						'feed_url'		=> htmlspecialchars_decode(request_var('feed_url', '')),
+						'feed_state'	=> request_var('feed_state', 0),
+						'post_forum'	=> request_var('post_forum', 0),
+						'bot_id'			=> request_var('bot_id', 0),
+						'feed_name'		=> utf8_normalize_nfc(htmlspecialchars_decode(request_var('feed_name', '', true))),
 						'feed_name_subject'	=> request_var('feed_name_subject', 0),
 						'post_mode'		=> request_var('post_mode', 1),
 						'max_articles'	=> request_var('max_articles', 0),
@@ -318,16 +329,25 @@ class acp_find
 
 								$desc = ($is_rss) ? $feed[0]->description : ( (isset($feed[0]->content)) ? $feed[0]->content : $feed[0]->summary );
 								$desc = html_entity_decode($desc, ENT_QUOTES, "UTF-8");
+								
+								if (empty($feed_data['feed_name']))
+								{
+									$feed_data['feed_name']		= (empty($source_title)) ? $user->lang['NONE'] : utf8_normalize_nfc($source_title);
+									$feed_data['feed_name_subject']	= (empty($source_title)) ? 1 : 0;
+								}
+								$feed_data['max_articles']	= (sizeof($feed) < 30) ? 0 : 30;
+								$feed_data['max_contents']	= (strlen(strip_tags($desc) < 2000)) ? 0 : 2000;
+								$feed_data['feed_info']		= (empty($source_title)) ? 0 : 1;
+								$feed_data['article_cat']	= (empty($source_cat)) ? 0 : 1;
+								$feed_data['article_html']	= ($desc == strip_tags($desc)) ? 0 : 1;
+								$feed_data['feed_state']	= 1;
+								
+								if ($action == 'add')
+								{
+									$prompt[] = $user->lang['SELECT_FORUM_BOT'];
+								}
 
-								$feed_data['feed_name']				= (empty($source_title)) ? $user->lang['NONE'] : utf8_normalize_nfc($source_title);
-								$feed_data['feed_name_subject']	= (empty($source_title)) ? 1 : 0;
-								$feed_data['max_articles']			= (sizeof($feed) < 30) ? 0 : 30;
-								$feed_data['max_contents']			= (strlen(strip_tags($desc) < 2000)) ? 0 : 2000;
-								$feed_data['feed_info']				= (empty($source_title)) ? 0 : 1;
-								$feed_data['article_cat']			= (empty($source_cat)) ? 0 : 1;
-								$feed_data['article_html']			= ($desc == strip_tags($desc)) ? 0 : 1;
-
-								$prompt[] = $user->lang['SELECT_FORUM_BOT'];
+								$prompt[] = $user->lang['REVIEW_SUBMIT'];
 							}
 						}
 						else
@@ -363,10 +383,11 @@ class acp_find
 						if (!sizeof($error))
 						{
 							$sql_ary = array(
-								'feed_url'				=> (string) $feed_data['feed_url'],
-								'post_forum'			=> (int) $feed_data['post_forum'],
-								'bot_id'					=> (int) $feed_data['bot_id'],
-								'feed_name'				=> (string) $feed_data['feed_name'],
+								'feed_url'		=> (string) $feed_data['feed_url'],
+								'feed_state'	=>	(int) $feed_data['feed_state'],
+								'post_forum'	=> (int) $feed_data['post_forum'],
+								'bot_id'			=> (int) $feed_data['bot_id'],
+								'feed_name'		=> (string) $feed_data['feed_name'],
 								'feed_name_subject'	=> (int) $feed_data['feed_name_subject'],
 								'post_mode'		=> (int) $feed_data['post_mode'],
 								'max_articles'	=> (int) $feed_data['max_articles'],
@@ -468,29 +489,34 @@ class acp_find
 						$s_bot_options .= '<option value="' . $id . (($id == $feed_data['bot_id']) ? '" selected="selected" >' : '" >') . $name . '</option>';
 					}
 
-					// Build radios
-					$s_ = array();
+					// Build feed properties
 					$_options = array('1' => 'YES', '0' => 'NO');
-					$toggle_ary = array('feed_name_subject', 'feed_info', 'article_cat', 'article_html');
-					foreach ($toggle_ary as $form_key)
+					$feed_properties = array('feed_name_subject', 'feed_info', 'article_cat', 'article_html');
+					foreach ($feed_properties as $key)
 					{
 						$s_options = '';
 						foreach ($_options as $value => $lang)
 						{
-							$selected = ($feed_data[$form_key] == $value) ? ' checked="checked" id="' . $form_key . '"' : '';
-							$s_options .= '<input type="radio" class="radio" name="' . $form_key . '" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '&nbsp;&nbsp;';
+							$selected = ($feed_data[$key] == $value) ? ' checked="checked" id="' . $key . '"' : '';
+							$s_options .= '<input type="radio" class="radio" name="' . $key . '" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '&nbsp;&nbsp;';
 						}
 
-						$s_[$form_key] = $s_options;
+						$lang = strtoupper($key);
+						$template->assign_block_vars('properties', array(
+							'TYPE'			=> $user->lang[$lang],
+							'TYPE_EXPLAIN'	=> $user->lang[$lang . '_EXPLAIN'],
+							'KEY'				=> $key,
+							'S_TYPE'			=> $s_options,
+						));
 					}
-
+					
 					// Build post new topic radios
 					$_options = array('1' => 'TOPIC_DAILY', '7' => 'TOPIC_WEEKLY', '30' => 'TOPIC_MONTHLY', '0' => 'TOPIC_ARTICLE');
 					$s_post_mode = '';
 					foreach ($_options as $value => $lang)
 					{
 						$selected = ($feed_data['post_mode'] == $value) ? ' checked="checked" id="post_mode"' : '';
-						$s_post_mode .= ($value) ? '' : '------------<br />';
+						$s_post_mode .= ($value) ? '' : '<hr style="border: 1px solid #808080; margin: 5px 0 7px 0; padding: 0px; width: 80px"/>';
 						$s_post_mode .= '<input type="radio" class="radio" name="post_mode" value="' . $value . '"' . $selected . ' />&nbsp;' . $user->lang[$lang] . '<br />';
 					}
 
@@ -498,37 +524,48 @@ class acp_find
 					foreach ($filter_keys as $lang)
 					{
 						$key = strtolower($lang);
+						$show = ($key == 'src') ? false : true;
+
 						$template->assign_block_vars('filters', array(
 							'TYPE'			=> $user->lang[$lang . '_FILTER'],
 							'TYPE_EXPLAIN'	=> $user->lang[$lang . '_FILTER_EXPLAIN'],
 							'KEY'				=> $key,
+							'S_SHOW'			=> $show,
 						));
 
 						$vals = $feed_filters[${key}];
 
-						if (is_null($vals))
+						if (empty($vals))
 						{
 							$template->assign_block_vars('filters.entries', array(
 								'KEY_S'	=> '',
 								'KEY_R'	=> '',
+								'S_CODE'	=> false,
 							));
+
 						}
 						else
 						{
+							$i = 0;
 							foreach ($vals as $value)
 							{
+								$hide = (!$i) ? false : true;
 								list($search, $replace) = $value;
+
 								$template->assign_block_vars('filters.entries', array(
 									'KEY_S'	=> htmlentities($search, ENT_QUOTES, "UTF-8"),
 									'KEY_R'	=> htmlentities($replace, ENT_QUOTES, "UTF-8"),
+									'S_CODE'	=> $hide,
 								));
+
+								$i++;
 							}
 						}
 					}
 				}
 
 				$template->assign_vars(array(
-					'L_TITLE'	=> $user->lang[strtoupper($action) . '_FEED'],
+					'L_TITLE'	=> $user->lang['FEED_' . strtoupper($action)],
 
 					'S_ERROR'	=> (sizeof($error)) ? true : false,
 					'ERROR_MSG'	=> (sizeof($error)) ? implode('<br />', $error) : '',
@@ -538,20 +575,16 @@ class acp_find
 
 					'FEED_NAME'			=> $feed_data['feed_name'],
 					'FEED_URL'			=> $feed_data['feed_url'],
+					'FEED_STATE'		=> $feed_data['feed_state'],
 					'S_CHECK'			=>	!$check,
 					'S_FORUM_OPTIONS'	=> $s_forum_options,
 					'S_BOT_OPTIONS'	=> $s_bot_options,
 
 					'S_POST_MODE'	=> $s_post_mode,
-					'S_FEEDNAME'	=> $s_['feed_name_subject'],
 
 					'MAX_ARTICLES'	=> $feed_data['max_articles'],
 					'MAX_CONTENTS'	=> $feed_data['max_contents'],
-					'SKIP_SRC'		=> $feed_filters['src'][0],
 
-					'S_INFO'		=> $s_['feed_info'],
-					'S_CAT'			=> $s_['article_cat'],
-					'S_HTML'			=> $s_['article_html'],
 					'S_EDIT_FEED'	=> true,
 					'S_CHECKED'		=> $url_checked,
 
@@ -588,13 +621,15 @@ class acp_find
 			$active_lang = (!$row['feed_state']) ? 'ACTIVATE' : 'DEACTIVATE';
 			$active_value = strtolower($active_lang);
 
+			$w3_url = 'http://validator.w3.org/feed/check.cgi?url=' . urlencode($row['feed_url']);
+
 			$template->assign_block_vars('feeds', array(
 				'S_TREE'	=> $s_tree,
 				'FORUM'	=> $tree,
 
 				'ID'				=> $row['feed_id'],
 				'NAME'			=> $row['feed_name'],
-				'URL'				=> $row['feed_url'],
+				'URL'				=> $w3_url,
 				'LAST_UPDATE'	=> ($row['last_update']) ? $user->format_date($row['last_update']) : $user->lang['NEVER'],
 
 				'L_ACTIVATE_DEACTIVATE'	=> $user->lang[$active_lang],

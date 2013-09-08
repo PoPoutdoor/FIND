@@ -8,22 +8,22 @@
 		<title lang="en">FIND</title>
 		<title lang="zh-TW">綜合新聞匯集</title>
 
-		<description lang="en">Forum Integrated News Delivery - post news from external feed to your forums.</description>
-		<description lang="zh-TW">綜合新聞匯集 - 發佈外部新聞來源訊息到你的論壇。</description>
+		<description lang="en">Forum Integrated News Delivery - post news from external feed to your forums. (BD3)</description>
+		<description lang="zh-TW">綜合新聞匯集 - 發佈外部新聞來源訊息到你的論壇。(BD3)</description>
 
 		<author-notes lang="en">This mod require:
 
-  1. php >= 5.3 with at least 128M RAM 
-  2. php setting "allow_url_fopen = on" and SimpleXML support
-  
+	1. php >= 5.3 with at least 128M RAM 
+	2. php setting "allow_url_fopen = on" and SimpleXML support
+
 IMPORTANT: Read contrib/readme.html before install.</author-notes>
 		<author-notes lang="zh-TW">這個外掛需要：
 
-  1. php 5.3 或以上、128M 或以上記憶設定
-  2. php 設定 "allow_url_fopen = on" 及 SimpleXML 支援
+	1. php 5.3 或以上、128M 或以上記憶設定
+	2. php 設定 "allow_url_fopen = on" 及 SimpleXML 支援
 
 重要: 安裝前先閱讀 contrib/readme.html。</author-notes>
-		<github><![CDATA[https://github.com/PoPoutdoor/phpbb3_mods-rss_input]]></github>
+		<github><![CDATA[https://github.com/PoPoutdoor/FIND]]></github>
 
 		<author-group>
 			<author>
@@ -36,11 +36,23 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 
 		<installation>
 			<level>easy</level>
-			<time>300</time>
+			<time>240</time>
 			<target-version>3.0.11</target-version>
 		</installation>
 
 		<history>
+			<entry>
+				<date>2013-09-09</date>
+				<rev-version>1.1.0-BD3</rev-version>
+				<changelog lang="en">
+					<change>Polish ACP custom filter</change>
+					<change>Varies fixes</change>
+				</changelog>
+				<changelog lang="zh-TW">
+					<change>優化 ACP 自訂過濾</change>
+					<change>各樣修正</change>
+				</changelog>
+			</entry>
 			<entry>
 				<date>2013-08-21</date>
 				<rev-version>1.1.0-develop</rev-version>
@@ -150,12 +162,16 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 		</history>
 
 		<link-group>
-			<link type="language" href="contrib/zh-cmn-hant.xml" lang="en">Traditional Chinese translations and support.</link>
-			<link type="language" href="contrib/zh-cmn-hant.xml" lang="zh-TW">繁體中文支援。</link>
 			<link type="text" href="contrib/setup.txt" lang="en">Post install setup instructions</link>
 			<link type="text" href="contrib/setup.txt" lang="zh-TW">安裝後設定(英語)</link>
 			<link type="text" href="contrib/customize.txt" lang="en">Customize instructions</link>
 			<link type="text" href="contrib/customize.txt" lang="zh-TW">自定義設定(英語)</link>
+			<link type="contrib" href="contrib/upgrade.xml" lang="en">Upgrade to 1.1.0</link>
+			<link type="contrib" href="contrib/upgrade.xml" lang="zh-TW">更新到 1.1.0 (英語)</link>
+			<link type="contrib" href="contrib/google_feed.xml" lang="en">Google feed support</link>
+			<link type="contrib" href="contrib/google_feed.xml" lang="zh-TW">谷歌新聞來源支援(英語)</link>
+			<link type="language" href="contrib/zh-cmn-hant.xml" lang="en">Traditional Chinese translations and support.</link>
+			<link type="language" href="contrib/zh-cmn-hant.xml" lang="zh-TW">繁體中文支援。</link>
 		</link-group>
 	</header>
 
@@ -163,7 +179,7 @@ IMPORTANT: Read contrib/readme.html before install.</author-notes>
 		<sql dbms="mysql"><![CDATA[CREATE TABLE phpbb_find (
 	feed_id smallint(4) unsigned NOT NULL auto_increment,
 	feed_url varchar(255) character set utf8 collate utf8_bin NOT NULL,
-	feed_state tinyint(1) unsigned NOT NULL default '1',
+	feed_state tinyint(1) unsigned NOT NULL default '0',
 	post_forum mediumint(8) unsigned NOT NULL default '0',
 	bot_id mediumint(8) unsigned NOT NULL default '0',
 	last_update int(11) unsigned NOT NULL default '0',
@@ -229,10 +245,10 @@ define('FIND_TABLE',				$table_prefix . 'find');
 
 		<diy-instructions lang="en">1. Install the ACP module
 
-     a. Login ACP
-     b. Go to: SYSTEM - MODULE MANAGEMENT -> acp -> general -> Board configuration page, select "FIND Settings [acp_find]" and click Add module.
-     c. Enable the module after the page refreshed.
-     d. Purge the cache.
+		a. Login ACP
+		b. Go to: SYSTEM - MODULE MANAGEMENT -> acp -> general -> Board configuration page, select "FIND Settings [acp_find]" and click Add module.
+		c. Enable the module after the page refreshed.
+		d. Purge the cache.
 
 2. Initial setup
 
