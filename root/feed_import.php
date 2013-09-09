@@ -22,8 +22,8 @@ define('IN_PHPBB', true);
 *		-	Return text only message upon error. The error message can be used for mail notification,
 *			for example *nix CRON program.
 *		-	Any external program which supports http protocol can be used. 
-*		-	Set 'USER_AGENT' below for the external program. You can check out the value from your
-*			server access log. 
+*		-	Set 'FIND_USER_AGENT' at includes/constants.php for the external program's user-agent value.
+*			You can check out the value from your server access log. 
 *		-	External program which supports custom User-Agent value is *recommended*. You can set
 *			this to encrypted string to prevent unauthorized feed import, thus avoid DoS attempt to
 *			your site through this mod.
@@ -31,8 +31,6 @@ define('IN_PHPBB', true);
 */
 
 define('HACK_MSG', false);
-// User Agent check
-//define('USER_AGENT', '');	// e.g. set 'lwp-request' for perl GET, 'curl' for curl.
 
 $phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './';
 $phpEx = substr(strrchr(__FILE__, '.'), 1);
@@ -47,9 +45,9 @@ $user->add_lang('find');
 $hack_msg = ( HACK_MSG ) ? sprintf($user->lang['HACK_ATTEMPT'], $user->data['session_ip') : '';
 
 //	Check the User-Agent
-if (defined('USER_AGENT'))
+if (defined('FIND_USER_AGENT'))
 {
-	if ( USER_AGENT && strpos($user->data['session_browser'], USER_AGENT) === false )
+	if ( FIND_USER_AGENT && strpos($user->data['session_browser'], FIND_USER_AGENT) === false )
 	{
 		die($hack_msg);
 	}

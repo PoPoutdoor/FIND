@@ -214,6 +214,7 @@ define('VOTE_CONVERTED', 127);
 ]]></find>
 				<action type="after-add"><![CDATA[//	FIND
 define('FIND_BOT_ID', '[FIND Bot]');	// string to identify our posting bot
+//define('FIND_USER_AGENT', '');	// user-agent of external program from CRON
 ]]></action>
 			</edit>
 			<edit>

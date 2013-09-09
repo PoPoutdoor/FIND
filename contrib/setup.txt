@@ -75,7 +75,7 @@ Initial setup for v1.1.0(BD3)
 	**If you allows unauthorized feed import, your site is opened for DoS attack (also the feed source site)** .
 
 
-	1. Set 'USER_AGENT' with the ID of external program which calls feed_import.php in your crontab. 
+	1. Set 'FIND_USER_AGENT' with the ID of external program which calls feed_import.php in your crontab. 
 
 	From example above, your external program is 'curl' and the User Agent contains the string  
 	"curl". You have to figured out the User Agent string from the access log if you use other   
@@ -92,12 +92,12 @@ Initial setup for v1.1.0(BD3)
 			Logon to console, type 'openssl passwd' then type *some text without space*
 			after re-type text just entered, encrypted string will be display.
 
-		Edit feed_import.php: 
+		Edit includes/constants.php: 
 
-		FIND 
-			//define('USER_AGENT', '');        // e.g. set 'lwp-request' for perl GET, 'curl' for curl. 
-		REPLACED WITH 
-			define('USER_AGENT', '*secret*'); 
+			FIND 
+				//define('FIND_USER_AGENT', '');
+			REPLACED WITH 
+				define('FIND_USER_AGENT', '*secret*'); 
 
 		Example crontab entry: 
 
@@ -154,6 +154,6 @@ Initial setup for v1.1.0(BD3)
 	You may also need support from your hosting to do the tricks.
 
 	Note: Applied all above is the best way to prevent unauthorized feed import. Applied method #1 for the least
-	security measure: DON'T leave USER_AGENT undefined!
+	security measure: DON'T leave FIND_USER_AGENT undefined!
 
 
