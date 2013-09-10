@@ -280,7 +280,7 @@ class acp_find
 						$opts = array('http' =>
 							array(
 								'method'  => 'GET',
-								'header'  => "User-agent: FIND - feed parser;\n" .
+								'header'  => "User-agent: FIND - news feed parser; +https://github.com/PoPoutdoor/FIND;\n" .
 												 "Accept: text/xml;\n"
 							)
 						);
