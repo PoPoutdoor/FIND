@@ -223,22 +223,34 @@ function post_feed( $ids = array() )
 		if ($is_rss)
 		{
 			$feed = $xml->xpath('//item');
-
-			if (isset($feed[0]->pubDate))
+			// version < 2.0?
+			if (empty($feed))
 			{
-				foreach($feed as $post)
+				foreach ($xml->item as $item)
 				{
-					$post->pubDate = strtotime(trim($post->pubDate));
+					$feed[] = $item;
 				}
 
-				usort($feed, function($a, $b)
-				{
-					return strcmp($b->pubDate, $a->pubDate);
-				});
+				$no_post_ts = true;
 			}
 			else
 			{
-				$no_post_ts = true;
+				if (isset($feed[0]->pubDate))
+				{
+					foreach($feed as $post)
+					{
+						$post->pubDate = strtotime(trim($post->pubDate));
+					}
+
+					usort($feed, function($a, $b)
+					{
+						return strcmp($b->pubDate, $a->pubDate);
+					});
+				}
+				else
+				{
+					$no_post_ts = true;
+				}
 			}
 		}
 		else
