@@ -185,14 +185,17 @@ function post_feed( $ids = array() )
 			}
 		}
 
-		// RSS: TTL support
-		$ttl = ( isset($xml->channel->ttl) ) ? $feed_ts + $xml->channel->ttl * 60 : 0;
-
-		// source not updated, fetch next feed
-		if ( $feed_ts <= $last_update || $ttl >= $now)
+		if ( $feed_ts != $now )
 		{
-			$msg['skip'][] = sprintf($user->lang['FEED_OLD'], $feedname);
-			continue;
+			// RSS: TTL support
+			$ttl = ( isset($xml->channel->ttl) ) ? $feed_ts + $xml->channel->ttl * 60 : 0;
+
+			// source not updated, fetch next feed
+			if ( $feed_ts <= $last_update || $ttl >= $now)
+			{
+				$msg['skip'][] = sprintf($user->lang['FEED_OLD'], $feedname);
+				continue;
+			}
 		}
 
 /* We use Bot user language from here */
@@ -287,23 +290,23 @@ function post_feed( $ids = array() )
 				break;
 			}
 
-			// check article timestamp
+			// article timestamp
 			if (!$no_post_ts)
 			{
 				$post_ts = ($is_rss) ? $post->pubDate : (isset($post->updated) ? $post->updated : $post->published);
-			}
 
-			// skip to next article if outdated
-			if ($post_ts <= $last_update)
-			{
-				$skipped++;
-				continue;
-			}
+				// skip to next article if outdated
+				if ($post_ts <= $last_update)
+				{
+					$skipped++;
+					continue;
+				}
 
-			// latest post timestamp
-			if (!$no_post_ts && $latest_ts < $post_ts)
-			{
-				$latest_ts = $post_ts;
+				// latest post timestamp
+				if ($latest_ts < $post_ts)
+				{
+					$latest_ts = $post_ts;
+				}
 			}
 
 			// preprocess article data
