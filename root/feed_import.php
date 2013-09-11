@@ -42,7 +42,7 @@ $auth->acl($user->data);
 $user->setup('common');
 $user->add_lang('find');
 
-$hack_msg = ( HACK_MSG ) ? sprintf($user->lang['HACK_ATTEMPT'], $user->data['session_ip') : '';
+$hack_msg = ( HACK_MSG ) ? sprintf($user->lang['HACK_ATTEMPT'], $user->data['session_ip']) : '';
 
 //	Check the User-Agent
 if (defined('FIND_USER_AGENT'))
