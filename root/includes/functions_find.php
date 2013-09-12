@@ -323,6 +323,12 @@ function post_feed( $ids = array() )
 
 			// preprocess article data
 			$title = fix_text($post->title);
+			// optional CJK support
+			if ($is_cjk)
+			{
+				$title = cjk_tidy($title);
+			}
+
 			$desc = ($is_rss) ? $post->description : ( (isset($post->content)) ? $post->content : $post->summary );
 			// Not validate, issue error
 			if (empty($title) && empty($desc))
@@ -402,7 +408,6 @@ function post_feed( $ids = array() )
 				if ($is_cjk)
 				{
 					$desc = cjk_tidy($desc);
-					$post_title = cjk_tidy($post_title);
 				}
 
 				// limit characters to post
