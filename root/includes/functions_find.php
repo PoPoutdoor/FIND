@@ -331,8 +331,6 @@ function post_feed( $ids = array() )
 				continue;
 			}
 
-			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
-			
 			// prepare message body
 			$message = '';
 
@@ -529,11 +527,11 @@ function post_feed( $ids = array() )
 			// store  message body
 			if (empty($post_mode))
 			{
-				$post_ary[] = array($post_title, $message);
+				$post_ary[] = array(truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']), $message);
 			}
 			else
 			{
-				$contents = sprintf($user->lang['BB_TITLE'], $post_title) . $message . "\n\n" . $contents;
+				$contents = sprintf($user->lang['BB_TITLE'], $title) . $message . "\n\n" . $contents;
 			}
 
 			$processed++;
