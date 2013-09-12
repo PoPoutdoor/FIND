@@ -401,20 +401,6 @@ function post_feed( $ids = array() )
 				}
 
 				$desc = fix_text($desc, false, true);
-				// add \n\n if begin with an image
-				$desc = preg_replace('@^(\[(url|img).+?\[/\\2\])\n{0,}@', "\\1\n\n", $desc);
-
-				// optional CJK support
-				if ($is_cjk)
-				{
-					$desc = cjk_tidy($desc);
-				}
-
-				// limit characters to post
-				if ($max_contents)
-				{
-					$desc = truncate_string($desc, $max_contents, 255, FALSE, $user->lang['TRUNCATE']);
-				}
 
 				// RSS+XML namespace support
 				if ($inc_ns)
@@ -432,9 +418,23 @@ function post_feed( $ids = array() )
 						$img = fix_url($media_img[0]);
 						if (!empty($img))
 						{
-							$desc = '[img]' . $img . '[/img]' . $user->lang['TAB'] . $desc;
+							$desc = '[img]' . $img . '[/img]' . $desc;
 						}
 					}
+				}
+				// add \n\n if begin with an image
+				$desc = preg_replace('@^(\[(url|img).+?\[/\\2\])\n{0,}@', "\\1\n\n", $desc);
+
+				// optional CJK support
+				if ($is_cjk)
+				{
+					$desc = cjk_tidy($desc);
+				}
+
+				// limit characters to post
+				if ($max_contents)
+				{
+					$desc = truncate_string($desc, $max_contents, 255, FALSE, $user->lang['TRUNCATE']);
 				}
 			}
 
@@ -522,7 +522,7 @@ function post_feed( $ids = array() )
 				{
 					if (!empty($thumb_img))
 					{
-						$desc = sprintf($user->lang['BB_URL'], $link_url, '[img]' . $thumb_img . '[/img]') . $user->lang['TAB'] . $desc;
+						$desc = sprintf($user->lang['BB_URL'], $link_url, '[img]' . $thumb_img . '[/img]') . "\n\n" . $desc;
 					}
 
 					$desc .= "\n\n" . sprintf($user->lang['BB_URL'], $link_url, $user->lang['READ_MORE']);
