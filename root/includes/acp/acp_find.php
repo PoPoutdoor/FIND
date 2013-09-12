@@ -277,11 +277,11 @@ class acp_find
 					{
 						$url = 'http://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_data['feed_url']);
 
-						$opts = array('http' =>
-							array(
-								'method'  => 'GET',
-								'header'  => "User-agent: FIND - news feed parser; +https://github.com/PoPoutdoor/FIND;\n" .
-												 "Accept: text/xml;\n"
+						$opts = array(
+							'http' => array(
+								'method'			=> 'GET',
+								'user_agent'	=> 'FIND - news feed parser; +https://github.com/PoPoutdoor/FIND',
+								'header'  		=> "Accept: application/rss+xml,application/atom+xml,text/xml:q=0.9,text/html:q=0.8\n"
 							)
 						);
 
