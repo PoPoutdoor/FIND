@@ -402,7 +402,7 @@ function post_feed( $ids = array() )
 
 				$desc = fix_text($desc, false, true);
 				// add \n\n if begin with an image
-				$desc = preg_replace('@^(\[(url|img).+?\[/\\2\])@', "\\1\n\n", $desc);
+				$desc = preg_replace('@^(\[(url|img).+?\[/\\2\])\n{0,}@', "\\1\n\n", $desc);
 
 				// optional CJK support
 				if ($is_cjk)
