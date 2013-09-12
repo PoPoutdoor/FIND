@@ -395,6 +395,8 @@ function post_feed( $ids = array() )
 				}
 
 				$desc = fix_text($desc, false, true);
+				// add \n\n if begin with an image
+				$desc = preg_replace('@^(\[(url|img).+?\[/\\2\])@', "\\1\n\n", $desc);
 
 				// optional CJK support
 				if ($is_cjk)
@@ -1000,7 +1002,7 @@ function html2bb($html)
 		$html = str_replace($tag[0], $bbcode, $html);
 	}
 
-	return $html;
+	return trim($html);
 }
 
 
