@@ -114,11 +114,11 @@ function post_feed( $ids = array() )
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
 
 		// try fixing server-side issues
-		$opts = array('http' =>
-			array(
-				'method'  => 'GET',
-				'header'  => "User-agent: FIND - news feed parser; +https://github.com/PoPoutdoor/FIND;\n" .
-								 "Accept: text/xml;\n"
+		$opts = array(
+			'http' => array(
+				'method'			=> 'GET',
+				'user_agent'	=> 'FIND - news feed parser; +https://github.com/PoPoutdoor/FIND',
+				'header'  		=> "Accept: application/rss+xml,application/atom+xml,text/xml:q=0.9,text/html:q=0.8\n"
 			)
 		);
 
