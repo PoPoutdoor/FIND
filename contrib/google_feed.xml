@@ -62,15 +62,14 @@
 </action>
 			</edit>
 			<edit>
-				<find>
-			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
+				<find>				if ($inc_html)
+				{
+					$desc = fix_text($desc, true, true);
+					$desc = html2bb($desc);
+				}
 </find>
-				<action type="before-add"><![CDATA[
-
-			// Google feed support
-			if (defined('GOOGLE') && !empty($desc))
-			{
-				if (in_array($feed_id, explode(',', GOOGLE)))
+				<action type="replace-with"><![CDATA[				// Google feed support
+				if (defined('GOOGLE') && in_array($feed_id, explode(',', GOOGLE)))
 				{
 					// strip first linked-text, this linked item is like media:video
 					if (preg_match('#<a.+?</a>#is', $desc, $tag))
@@ -116,7 +115,11 @@
 					// join all related links into one line
 					$desc = strip_tags($desc);
 				}
-			}
+				elseif ($inc_html)
+				{
+					$desc = fix_text($desc, true, true);
+					$desc = html2bb($desc);
+				}
 ]]></action>
 			</edit>
 		</open>

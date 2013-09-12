@@ -114,11 +114,11 @@ function post_feed( $ids = array() )
 		$user->data['is_registered']	= 1;	// also used for update forum tracking
 
 		// try fixing server-side issues
-		$opts = array('http' =>
-			array(
-				'method'  => 'GET',
-				'header'  => "User-agent: FIND - news feed parser; +https://github.com/PoPoutdoor/FIND;\n" .
-								 "Accept: text/xml;\n"
+		$opts = array(
+			'http' => array(
+				'method'			=> 'GET',
+				'user_agent'	=> 'FIND - news feed parser; +https://github.com/PoPoutdoor/FIND',
+				'header'  		=> "Accept: application/rss+xml,application/atom+xml,text/xml:q=0.9,text/html:q=0.8\n"
 			)
 		);
 
@@ -323,6 +323,12 @@ function post_feed( $ids = array() )
 
 			// preprocess article data
 			$title = fix_text($post->title);
+			// optional CJK support
+			if ($is_cjk)
+			{
+				$title = cjk_tidy($title);
+			}
+
 			$desc = ($is_rss) ? $post->description : ( (isset($post->content)) ? $post->content : $post->summary );
 			// Not validate, issue error
 			if (empty($title) && empty($desc))
@@ -331,8 +337,6 @@ function post_feed( $ids = array() )
 				continue;
 			}
 
-			$post_title = truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']);
-			
 			// prepare message body
 			$message = '';
 
@@ -398,19 +402,6 @@ function post_feed( $ids = array() )
 
 				$desc = fix_text($desc, false, true);
 
-				// optional CJK support
-				if ($is_cjk)
-				{
-					$desc = cjk_tidy($desc);
-					$post_title = cjk_tidy($post_title);
-				}
-
-				// limit characters to post
-				if ($max_contents)
-				{
-					$desc = truncate_string($desc, $max_contents, 255, FALSE, $user->lang['TRUNCATE']);
-				}
-
 				// RSS+XML namespace support
 				if ($inc_ns)
 				{
@@ -427,9 +418,23 @@ function post_feed( $ids = array() )
 						$img = fix_url($media_img[0]);
 						if (!empty($img))
 						{
-							$desc = '[img]' . $img . '[/img]' . $user->lang['TAB'] . $desc;
+							$desc = '[img]' . $img . '[/img]' . $desc;
 						}
 					}
+				}
+				// add \n\n if begin with an image
+				$desc = preg_replace('@^(\[(url|img).+?\[/\\2\])\n{0,}@', "\\1\n\n", $desc);
+
+				// optional CJK support
+				if ($is_cjk)
+				{
+					$desc = cjk_tidy($desc);
+				}
+
+				// limit characters to post
+				if ($max_contents)
+				{
+					$desc = truncate_string($desc, $max_contents, 255, FALSE, $user->lang['TRUNCATE']);
 				}
 			}
 
@@ -517,7 +522,7 @@ function post_feed( $ids = array() )
 				{
 					if (!empty($thumb_img))
 					{
-						$desc = sprintf($user->lang['BB_URL'], $link_url, '[img]' . $thumb_img . '[/img]') . $user->lang['TAB'] . $desc;
+						$desc = sprintf($user->lang['BB_URL'], $link_url, '[img]' . $thumb_img . '[/img]') . "\n\n" . $desc;
 					}
 
 					$desc .= "\n\n" . sprintf($user->lang['BB_URL'], $link_url, $user->lang['READ_MORE']);
@@ -529,11 +534,11 @@ function post_feed( $ids = array() )
 			// store  message body
 			if (empty($post_mode))
 			{
-				$post_ary[] = array($post_title, $message);
+				$post_ary[] = array(truncate_string($title, 60, 255, false, $user->lang['TRUNCATE']), $message);
 			}
 			else
 			{
-				$contents = sprintf($user->lang['BB_TITLE'], $post_title) . $message . "\n\n" . $contents;
+				$contents = sprintf($user->lang['BB_TITLE'], $title) . $message . "\n\n" . $contents;
 			}
 
 			$processed++;
@@ -1002,7 +1007,7 @@ function html2bb($html)
 		$html = str_replace($tag[0], $bbcode, $html);
 	}
 
-	return $html;
+	return trim($html);
 }
 
 
