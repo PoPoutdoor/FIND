@@ -1,7 +1,15 @@
+Restore code to last version
+================================
+
+The last(legacy) version can be download from:
+
+	https://github.com/PoPoutdoor/FIND/archive/legacy.zip
+
+
 Restore data table to last version
 =======================================
 
-Run SQL statement below can restore data table structure to last version from successful upgrade, with data lost for the encodings.
+Run SQL statement below can restore data table structure to last version from successful upgrade, with DATA LOST for the encodings.
 
 SQL statement
 ===============
