@@ -49,6 +49,9 @@ function post_feed( $ids = array() )
 		return $msg;
 	}
 
+	// honor UA setting
+	$user_agent = (defined('FIND_USER_AGENT')) ? FIND_USER_AGENT : 'FIND - news feed parser; +https://github.com/PoPoutdoor/FIND';
+
 	// current custom filter keys
 	$filter_keys = array('URL', 'TEXT', 'HTML', 'SRC');
 	// optional CJK support
@@ -117,7 +120,7 @@ function post_feed( $ids = array() )
 		$opts = array(
 			'http' => array(
 				'method'			=> 'GET',
-				'user_agent'	=> 'FIND - news feed parser; +https://github.com/PoPoutdoor/FIND',
+				'user_agent'	=> $user_agent,
 				'header'  		=> "Accept: application/rss+xml,application/atom+xml,text/xml:q=0.9,text/html:q=0.8\n"
 			)
 		);
