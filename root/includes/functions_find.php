@@ -446,7 +446,15 @@ function post_feed( $ids = array() )
 			{
 				$message .= "\n" . $desc . "\n";
 
-				$link	= fix_url($post->link);
+				// Fix guid only link
+				if (empty($post->link))
+				{
+					$link   = fix_url($post->guid);
+				}
+				else
+				{
+					$link	= fix_url($post->link);
+				}
 
 				$comments = (isset($post->comments)) ? fix_url($post->comments) : '';
 
